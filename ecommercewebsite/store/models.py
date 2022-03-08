@@ -8,7 +8,7 @@ from django.contrib.auth.models import User
 class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name: models.CharField = models.CharField(max_length=200, null=True, blank=False)
-    email: models.CharField = models.CharField(max_length=200)
+    email: models.CharField = models.CharField(max_length=200, blank=True)
 
     def __str__(self) -> str:
         return self.name
@@ -45,7 +45,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     product: models.ForeignKey = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, unique=False)
     order: models.ForeignKey = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, unique=False)
-    quantity: models.IntegerField = models.IntegerField(default=0, null=True, blank=True)
+    quantity: models.IntegerField = models.IntegerField(default=1, null=True, blank=True)
     date_added: models.DateTimeField = models.DateTimeField(auto_now_add=True, null=True)
 
 
