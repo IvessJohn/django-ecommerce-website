@@ -18,7 +18,7 @@ class Product(models.Model):
     name: models.CharField = models.CharField(max_length=200, blank=False)
     price: models.DecimalField = models.DecimalField(max_digits=9, decimal_places=2, blank=False, null=True)
     digital: models.BooleanField = models.BooleanField(default=False, null=True, blank=True)
-    image = models.ImageField(null=True, default="banner_placeholder.png", blank=True)
+    image = models.ImageField(null=True, blank=True)
 
     def __str__(self) -> str:
         return self.name
