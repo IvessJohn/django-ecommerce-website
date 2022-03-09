@@ -62,20 +62,24 @@
             
             <div class="cart-row">
                 <div style="flex: 2;"></div>
-                <div style="flex: 2;">Item</div>
-                <div style="flex: 1;">Quantity</div>
-                <div style="flex: 1;">Total</div>
+                <div style="flex: 2;"><strong>Item</strong></div>
+                <div style="flex: 1;"><strong>Quantity</strong></div>
+                <div style="flex: 1;"><strong>Total</strong></div>
             </div>
 
+            {% for item in ordered_items %}
+            
             <div class="cart-row">
-                <div style="flex: 2;"><img class="row-image" src="{% static 'images/banner_placeholder.png' %}"></div>
-                <div style="flex: 2;">Product ABC1</div>
-                <div style="flex: 1;">x2</div>
-                <div style="flex: 1;">$28.66</div>
+                <div style="flex: 2;"><img class="row-image" src="{{item.product.imageURL}}"></div>
+                <div style="flex: 2;">{{item.product.name}}</div>
+                <div style="flex: 1;">x{{item.quantity}}</div>
+                <div style="flex: 1;">${{item.get_total_price}}</div>
             </div>
 
-            <h5>Items: </h5>
-            <h3>Total: $ </h3>
+            {% endfor %}
+
+            <h5>Items: {{order.get_items_amount}}</h5>
+            <h3>Total: ${{order.get_cart_price}}</h3>
         </div>
     </div>
 </div>
