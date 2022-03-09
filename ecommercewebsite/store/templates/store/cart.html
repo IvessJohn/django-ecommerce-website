@@ -13,8 +13,8 @@
             <br>
             <table class="table">
                 <tr>
-                    <th><h5>Items: <strong>3</strong></h5></th>
-                    <th><h5>Total: <strong>$43.85</strong></h5></th>
+                    <th><h5>Items: <strong>{{order.get_items_amount}}</strong></h5></th>
+                    <th><h5>Total: <strong>${{order.get_cart_price}}</strong></h5></th>
                     <th>
                         <a style="float:right; margin: 5px;" class="btn btn-success" href="{% url 'checkout' %}">Checkout</a>
                     </th>
@@ -41,14 +41,14 @@
                 <div style="flex: 2;">{{item.product.name}}</div>
                 <div style="flex: 1;">${{item.product.price}}</div>
                 <div style="flex: 1;">
-                    <p class="quantity">${{item.quantity}}</p>
+                    <p class="quantity">{{item.quantity}}</p>
                     <div class="quantity">
                         <img class="chg-quantity" src="{% static  'images/arrow_up.png' %}">
                 
                         <img class="chg-quantity" src="{% static  'images/arrow_down.png' %}">
                     </div>
                 </div>
-                <div style="flex: 1;">$1{#widthratio item.product.price 1 item.quantity#}</div>
+                <div style="flex: 1;">${{item.get_total_price}}</div>
             </div>
 
             {% endfor %}

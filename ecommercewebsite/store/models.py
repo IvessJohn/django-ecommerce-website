@@ -1,4 +1,5 @@
 from email.policy import default
+from itertools import product
 import black
 from django.db import models
 from django.contrib.auth.models import User
@@ -16,7 +17,7 @@ class Customer(models.Model):
 
 class Product(models.Model):
     name: models.CharField = models.CharField(max_length=200, blank=False)
-    price: models.DecimalField = models.DecimalField(max_digits=9, decimal_places=2, blank=False, null=True)
+    price: models.DecimalField = models.DecimalField(max_digits=11, decimal_places=2, blank=False, null=True)
     digital: models.BooleanField = models.BooleanField(default=False, null=True, blank=True)
     image = models.ImageField(null=True, blank=True)
 
@@ -41,12 +42,26 @@ class Order(models.Model):
     def __str__(self) -> str:
         return f"Order({self.id})-{self.customer.name}"
 
+    @property
+    def get_cart_price(self):
+        orderitems = self.orderitem_set.all()
+        return sum(item.get_total_price for item in orderitems)
+    
+    @property
+    def get_items_amount(self):
+        orderitems = self.orderitem_set.all()
+        return sum(item.quantity for item in orderitems)
+
 
 class OrderItem(models.Model):
     product: models.ForeignKey = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, unique=False)
     order: models.ForeignKey = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, unique=False)
     quantity: models.IntegerField = models.IntegerField(default=1, null=True, blank=True)
     date_added: models.DateTimeField = models.DateTimeField(auto_now_add=True, null=True)
+
+    @property
+    def get_total_price(self):
+        return self.product.price * self.quantity
 
 
 class ShippingInformation(models.Model):
