@@ -56,7 +56,7 @@ class Order(models.Model):
 class OrderItem(models.Model):
     product: models.ForeignKey = models.ForeignKey(Product, on_delete=models.SET_NULL, null=True, unique=False)
     order: models.ForeignKey = models.ForeignKey(Order, on_delete=models.SET_NULL, null=True, unique=False)
-    quantity: models.IntegerField = models.IntegerField(default=1, null=True, blank=True)
+    quantity: models.IntegerField = models.IntegerField(default=0, null=True, blank=True)
     date_added: models.DateTimeField = models.DateTimeField(auto_now_add=True, null=True)
 
     @property
