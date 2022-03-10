@@ -58,8 +58,8 @@
             <hr>
             <h2>Order Summary</h2>
             <hr>
+
             <!-- Full order here -->
-            
             <div class="cart-row">
                 <div style="flex: 2;"></div>
                 <div style="flex: 2;"><strong>Item</strong></div>
@@ -68,7 +68,7 @@
             </div>
 
             {% for item in ordered_items %}
-            
+
             <div class="cart-row">
                 <div style="flex: 2;"><img class="row-image" src="{{item.product.imageURL}}"></div>
                 <div style="flex: 2;">{{item.product.name}}</div>
@@ -84,5 +84,11 @@
     </div>
 </div>
 
+<script type="text/javascript">
+    var shipping = '{{requires_shipping}}'
 
+    if (shipping == 'False') {
+        document.getElementById("shipping-info").innerHTML = ""
+    }
+</script>
 {% endblock content %}

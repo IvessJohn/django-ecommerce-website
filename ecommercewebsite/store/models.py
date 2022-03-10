@@ -51,6 +51,10 @@ class Order(models.Model):
     def get_items_amount(self):
         orderitems = self.orderitem_set.all()
         return sum(item.quantity for item in orderitems)
+    
+    @property
+    def requires_shipping(self):
+        return any(orderitem.product.digital == False for orderitem in self.orderitem_set.all())
 
 
 class OrderItem(models.Model):
