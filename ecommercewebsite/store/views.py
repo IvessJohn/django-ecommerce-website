@@ -2,6 +2,8 @@ import string
 from django.shortcuts import render, redirect
 from django.http import JsonResponse
 import json
+import datetime
+from decimal import Decimal
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
 
@@ -46,7 +48,7 @@ def checkout(request):
     ordered_items = []
     order = {"get_cart_total": 0, "get_items_amount": 0}
     items_amount = order["get_items_amount"]
-    requires_shipping = True
+    requires_shipping = False
 
     if request.user.is_authenticated:
         customer = request.user.customer
@@ -89,3 +91,33 @@ def update_item(request):
         order_item.delete()
 
     return JsonResponse("Item was updated", safe=False)
+
+
+def process_order(request):
+    transaction_id = datetime.datetime.now().timestamp()
+    data = json.loads(request.body)
+
+    if request.user.is_authenticated:
+        customer = request.user.customer
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        total = Decimal(data['userFormData']['total'])
+
+        order.transaction_id = transaction_id
+        if total == order.get_cart_price:
+            order.complete = True
+        order.save()
+
+        if order.requires_shipping:
+            ShippingInformation.objects.create(
+                customer=customer,
+                order=order,
+                address=data['shippingInfo']['address'],
+                city=data['shippingInfo']['city'],
+                state=data['shippingInfo']['state'],
+                zipcode=data['shippingInfo']['zipcode']
+            )
+    else:
+        print("User not logged in.")
+    print(f"Payment data: {request.body}")
+    return JsonResponse("Payment submitted...", safe=False)
+    

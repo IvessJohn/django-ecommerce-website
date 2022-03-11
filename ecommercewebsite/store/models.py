@@ -54,6 +54,8 @@ class Order(models.Model):
     
     @property
     def requires_shipping(self):
+        if len(self.orderitem_set.all()) == 0:
+            return False
         return any(orderitem.product.digital == False for orderitem in self.orderitem_set.all())
 
 
