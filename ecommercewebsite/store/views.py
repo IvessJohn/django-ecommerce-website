@@ -1,5 +1,7 @@
+from math import prod
 import string
 from django.shortcuts import render, redirect
+from django.contrib.auth import logout
 from django.http import JsonResponse
 import json
 import datetime
@@ -27,7 +29,7 @@ def store(request):
 
 def cart(request):
     ordered_items = []
-    order = {"get_cart_total": 0, "get_items_amount": 0}
+    order = {"get_cart_price": 0, "get_items_amount": 0, "requires_shipping": False}
     items_amount = order["get_items_amount"]
 
     if request.user.is_authenticated:
@@ -35,6 +37,29 @@ def cart(request):
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         ordered_items = order.orderitem_set.all()
         items_amount = order.get_items_amount
+    else:
+        cart = {}
+        if "cart" in request.COOKIES:
+            cart = json.loads(request.COOKIES["cart"])
+        print("Cart:", cart)
+
+        for i in cart:
+            product: Product = Product.objects.get(id=i)
+            product_quantity: int = cart[i]["quantity"]
+
+            order["get_items_amount"] += product_quantity
+            order["get_cart_price"] += product.price * product_quantity
+            if not product.digital:
+                order["requires_shipping"] = True
+            
+            ordered_item = {
+                'product': product,
+                'quantity': product_quantity,
+                'get_total_price': product.price * product_quantity
+            }
+            ordered_items.append(ordered_item)
+
+        items_amount = order["get_items_amount"]
 
     context = {
         "order": order,
@@ -100,7 +125,7 @@ def process_order(request):
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        total = Decimal(data['userFormData']['total'])
+        total = Decimal(data["userFormData"]["total"])
 
         order.transaction_id = transaction_id
         if total == order.get_cart_price:
@@ -111,13 +136,17 @@ def process_order(request):
             ShippingInformation.objects.create(
                 customer=customer,
                 order=order,
-                address=data['shippingInfo']['address'],
-                city=data['shippingInfo']['city'],
-                state=data['shippingInfo']['state'],
-                zipcode=data['shippingInfo']['zipcode']
+                address=data["shippingInfo"]["address"],
+                city=data["shippingInfo"]["city"],
+                state=data["shippingInfo"]["state"],
+                zipcode=data["shippingInfo"]["zipcode"],
             )
     else:
         print("User not logged in.")
     print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
-    
+
+
+def logout_view(request):
+    logout(request)
+    return redirect("/")
