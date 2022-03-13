@@ -1,3 +1,4 @@
+from decimal import Decimal
 from email.policy import default
 from itertools import product
 import black
@@ -67,7 +68,9 @@ class OrderItem(models.Model):
 
     @property
     def get_total_price(self):
-        return self.product.price * self.quantity
+        if self.product:
+            return self.product.price * self.quantity
+        return Decimal(0.0)
 
 
 class ShippingInformation(models.Model):

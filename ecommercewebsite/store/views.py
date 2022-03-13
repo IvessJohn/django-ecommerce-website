@@ -8,18 +8,18 @@ import datetime
 from decimal import Decimal
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
+from .utils import cookie_cart
 
 # Create your views here.
 def store(request):
-    ordered_items = []
-    order = {"get_cart_total": 0, "get_items_amount": 0}
-    items_amount = order["get_items_amount"]
-
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        ordered_items = order.orderitem_set.all()
         items_amount = order.get_items_amount
+    else:
+        cart_data = cookie_cart(request)
+        order = cart_data['order']
+        items_amount = cart_data['items_amount']
 
     products = Product.objects.all()
 
@@ -28,38 +28,16 @@ def store(request):
 
 
 def cart(request):
-    ordered_items = []
-    order = {"get_cart_price": 0, "get_items_amount": 0, "requires_shipping": False}
-    items_amount = order["get_items_amount"]
-
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         ordered_items = order.orderitem_set.all()
         items_amount = order.get_items_amount
     else:
-        cart = {}
-        if "cart" in request.COOKIES:
-            cart = json.loads(request.COOKIES["cart"])
-        print("Cart:", cart)
-
-        for i in cart:
-            product: Product = Product.objects.get(id=i)
-            product_quantity: int = cart[i]["quantity"]
-
-            order["get_items_amount"] += product_quantity
-            order["get_cart_price"] += product.price * product_quantity
-            if not product.digital:
-                order["requires_shipping"] = True
-            
-            ordered_item = {
-                'product': product,
-                'quantity': product_quantity,
-                'get_total_price': product.price * product_quantity
-            }
-            ordered_items.append(ordered_item)
-
-        items_amount = order["get_items_amount"]
+        cart_data = cookie_cart(request)
+        ordered_items = cart_data['ordered_items']
+        order = cart_data['order']
+        items_amount = cart_data['items_amount']
 
     context = {
         "order": order,
@@ -70,19 +48,18 @@ def cart(request):
 
 
 def checkout(request):
-    ordered_items = []
-    order = {"get_cart_total": 0, "get_items_amount": 0}
-    items_amount = order["get_items_amount"]
-    requires_shipping = False
-
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         ordered_items = order.orderitem_set.all()
-
         items_amount = order.get_items_amount
         requires_shipping = order.requires_shipping
-    print(f"Requires shipping: {requires_shipping}")
+    else:
+        cart_data = cookie_cart(request)
+        ordered_items = cart_data['ordered_items']
+        order = cart_data['order']
+        items_amount = cart_data['items_amount']
+        requires_shipping = cart_data['requires_shipping']
 
     context = {
         "order": order,
