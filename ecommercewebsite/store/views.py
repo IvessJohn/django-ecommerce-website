@@ -8,7 +8,7 @@ import datetime
 from decimal import Decimal
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
-from .utils import cookie_cart, get_order_data
+from .utils import cookie_cart, get_order_data, create_guest_order
 
 # Create your views here.
 def store(request):
@@ -77,30 +77,33 @@ def update_item(request):
 
 
 def process_order(request):
-    transaction_id = datetime.datetime.now().timestamp()
     data = json.loads(request.body)
 
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        total = Decimal(data["userFormData"]["total"])
-
-        order.transaction_id = transaction_id
-        if total == order.get_cart_price:
-            order.complete = True
-        order.save()
-
-        if order.requires_shipping:
-            ShippingInformation.objects.create(
-                customer=customer,
-                order=order,
-                address=data["shippingInfo"]["address"],
-                city=data["shippingInfo"]["city"],
-                state=data["shippingInfo"]["state"],
-                zipcode=data["shippingInfo"]["zipcode"],
-            )
     else:
-        print("User not logged in.")
+        customer, order = create_guest_order(request, data)
+
+    # Save shipping information if the order requires shipping
+    if order.requires_shipping:
+        ShippingInformation.objects.create(
+            customer=customer,
+            order=order,
+            address=data["shippingInfo"]["address"],
+            city=data["shippingInfo"]["city"],
+            state=data["shippingInfo"]["state"],
+            zipcode=data["shippingInfo"]["zipcode"],
+        )
+
+    # Check price
+    transaction_id = datetime.datetime.now().timestamp()
+    total = Decimal(data["userFormData"]["total"])
+    order.transaction_id = transaction_id
+    if total == order.get_cart_price:
+        order.complete = True
+    order.save()
+
     print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
 

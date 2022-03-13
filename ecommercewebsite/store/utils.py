@@ -60,3 +60,26 @@ def cookie_cart(request) -> dict:
         "items_amount": items_amount,
         "requires_shipping": order["requires_shipping"],
     }
+
+
+def create_guest_order(request, data) -> tuple[Customer, Order]:
+    name = data["userFormData"]["name"]
+    email = data["userFormData"]["email"]
+
+    customer, created = Customer.objects.get_or_create(
+        email=email,
+    )
+    customer.name = name
+    customer.save()
+
+    cart_data = cookie_cart(request)
+
+    order: Order = Order.objects.create(customer=customer, complete=False)
+    ordered_items = cart_data["ordered_items"]
+    for item in ordered_items:
+        ordered_item: OrderItem = OrderItem.objects.create(
+            product=item["product"],
+            order=order,
+            quantity=item["quantity"],
+        )
+    return (customer, order)

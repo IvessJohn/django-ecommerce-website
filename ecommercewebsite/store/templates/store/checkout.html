@@ -135,6 +135,7 @@
             'address': null,
             'city': null,
             'state': null,
+            //'country': null,
             'zipcode': null,
         }
 
@@ -146,6 +147,7 @@
             shippingInfo.address = form.address.value
             shippingInfo.city = form.city.value
             shippingInfo.state = form.state.value
+            //shippingInfo.country = form.country.value
             shippingInfo.zipcode = form.zipcode.value
         }
 
@@ -162,6 +164,10 @@
         .then((data) =>{
             console.log("Success:", data)
             alert("Transaction complete.")
+
+            cart = {}
+			document.cookie ='cart=' + JSON.stringify(cart) + ";domain=;path=/"
+
             window.location.href = "{% url 'store' %}"
         })
     }
