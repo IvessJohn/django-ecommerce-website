@@ -8,18 +8,12 @@ import datetime
 from decimal import Decimal
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
-from .utils import cookie_cart
+from .utils import cookie_cart, get_order_data
 
 # Create your views here.
 def store(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        items_amount = order.get_items_amount
-    else:
-        cart_data = cookie_cart(request)
-        order = cart_data['order']
-        items_amount = cart_data['items_amount']
+    order_data = get_order_data(request)
+    items_amount = order_data["items_amount"]
 
     products = Product.objects.all()
 
@@ -28,16 +22,10 @@ def store(request):
 
 
 def cart(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        ordered_items = order.orderitem_set.all()
-        items_amount = order.get_items_amount
-    else:
-        cart_data = cookie_cart(request)
-        ordered_items = cart_data['ordered_items']
-        order = cart_data['order']
-        items_amount = cart_data['items_amount']
+    order_data = get_order_data(request)
+    order = order_data["order"]
+    ordered_items = order_data["ordered_items"]
+    items_amount = order_data["items_amount"]
 
     context = {
         "order": order,
@@ -48,18 +36,11 @@ def cart(request):
 
 
 def checkout(request):
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        ordered_items = order.orderitem_set.all()
-        items_amount = order.get_items_amount
-        requires_shipping = order.requires_shipping
-    else:
-        cart_data = cookie_cart(request)
-        ordered_items = cart_data['ordered_items']
-        order = cart_data['order']
-        items_amount = cart_data['items_amount']
-        requires_shipping = cart_data['requires_shipping']
+    order_data = get_order_data(request)
+    order = order_data["order"]
+    ordered_items = order_data["ordered_items"]
+    items_amount = order_data["items_amount"]
+    requires_shipping = order_data["requires_shipping"]
 
     context = {
         "order": order,
