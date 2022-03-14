@@ -52,7 +52,10 @@
         <br>
         <div id="payment-info" class="box-element hidden">
             <small>Paypal Options</small>
-            <button id="make-payment-btn">Make payment</button>
+            <!-- Set up a container element for the button -->
+            <div id="paypal-button-container"></div>
+        
+            <!--<button id="make-payment-btn">Make payment</button>-->
         </div>
     </div>
 
@@ -90,6 +93,45 @@
     </div>
 </div>
 
+
+<!-- Include the PayPal JavaScript SDK -->
+<script src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
+<script>
+    var total = '{{order.get_cart_price}}'
+    // Render the PayPal button into #paypal-button-container
+    paypal.Buttons({
+
+        locale: 'en_US',
+        style: {
+        size: 'responsive',
+        color: 'gold',
+        shape: 'pill'
+        },
+
+        // Set up the transaction
+        createOrder: function(data, actions) {
+            return actions.order.create({
+                purchase_units: [{
+                    amount: {
+                        value: parseFloat(total).toFixed(2)
+                    }
+                }]
+            });
+        },
+
+        // Finalize the transaction
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(orderData) {
+                // Successful capture! For demo purposes:
+                submitFormData()
+                alert('Transaction completed by ' + details.payer.name.given_name);
+            });
+        }
+
+
+    }).render('#paypal-button-container');
+</script>
+
 <script type="text/javascript">
     var requires_shipping = '{{requires_shipping}}'
     var total = '{{order.get_cart_price}}'
@@ -116,12 +158,12 @@
         document.getElementById("payment-info").classList.remove("hidden")
     })
 
-
+    /*
     makePaymentButton = document.getElementById("make-payment-btn")
     makePaymentButton.addEventListener('click', function (e) {
         submitFormData()
     })
-
+    */
 
     function submitFormData() {
         console.log("Payment button clicked")
