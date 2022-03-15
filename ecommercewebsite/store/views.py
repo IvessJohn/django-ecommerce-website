@@ -1,11 +1,11 @@
-from math import prod
-import string
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
 from django.http import JsonResponse
 import json
 import datetime
 from decimal import Decimal
+
+from django_countries import Countries
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
 from .utils import cookie_cart, get_order_data, create_guest_order
@@ -47,6 +47,7 @@ def checkout(request):
         "ordered_items": ordered_items,
         "items_amount": items_amount,
         "requires_shipping": requires_shipping,
+        "countries": Countries,
     }
     return render(request, "store/checkout.html", context)
 
@@ -94,7 +95,9 @@ def process_order(request):
             city=data["shippingInfo"]["city"],
             state=data["shippingInfo"]["state"],
             zipcode=data["shippingInfo"]["zipcode"],
+            country=data["shippingInfo"]["country"],
         )
+        print(data["shippingInfo"]["country"])
 
     # Check price
     transaction_id = datetime.datetime.now().timestamp()

@@ -79,7 +79,7 @@ class ShippingInformation(models.Model):
     address: models.CharField = models.CharField(max_length=200, null=False, blank=False)
     city: models.CharField = models.CharField(max_length=200, null=False, blank=False)
     state: models.CharField = models.CharField(max_length=200, null=False, blank=False)
-    country: CountryField = CountryField(blank_label="Select country...", default="USA")
+    country: CountryField = CountryField(blank_label="Select country...", default="USA", blank=True)
     zipcode: models.CharField = models.CharField(max_length=200, null=False, blank=False)
     date_added: models.DateTimeField = models.DateTimeField(auto_now_add=True, null=True)
 

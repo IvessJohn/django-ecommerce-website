@@ -40,7 +40,13 @@
                     </div>
 
                     <div class="form-field">
-                        <input required class="form-control" type="text" name="country" placeholder="Country...">
+                        <!-- <input required class="form-control" type="text" name="country" placeholder="Country..."> /!-->
+                        <label for="country">Country:</label>
+                        <select required name="country" style="width: min-content;">
+                            {% for country in countries %}
+                            <option value="{{country.code}}">{{country.name}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                 </div>
 
@@ -177,7 +183,7 @@
             'address': null,
             'city': null,
             'state': null,
-            //'country': null,
+            'country': null,
             'zipcode': null,
         }
 
@@ -189,7 +195,7 @@
             shippingInfo.address = form.address.value
             shippingInfo.city = form.city.value
             shippingInfo.state = form.state.value
-            //shippingInfo.country = form.country.value
+            shippingInfo.country = form.country.value
             shippingInfo.zipcode = form.zipcode.value
         }
 
