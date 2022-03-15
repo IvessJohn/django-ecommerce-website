@@ -1,4 +1,8 @@
 import json
+from decimal import Decimal
+
+from coupon_management.validations import validate_coupon
+from coupon_management.models import Coupon, Discount
 
 from .models import *
 
@@ -83,3 +87,33 @@ def create_guest_order(request, data) -> tuple[Customer, Order]:
             quantity=item["quantity"],
         )
     return (customer, order)
+
+def use_coupon_view(request, coupon_code, *args, **kwargs) -> str:
+    user = request.user
+    
+    status = validate_coupon(coupon_code=coupon_code, user=user)
+    if status['valid']:
+        coupon = Coupon.objects.get(code=coupon_code)
+        coupon.use_coupon(user=user)
+    
+        return "OK"
+    
+    return status['message']
+
+def calculate_price_with_coupon(request, price, coupon_code):
+    if coupon_code == "":
+        return (price, "")
+    
+    end_price: Decimal = price
+
+    error: str = use_coupon_view(request, coupon_code)
+    if error == "OK":
+        discount: Discount = Coupon.objects.get(code=coupon_code).discount
+        if discount.is_percentage:
+            discount_percentage: int = min(discount.value, 100)
+            discount_amount: Decimal = price * discount_percentage * 0.01
+        else:
+            discount_amount: int = discount.value
+        end_price = max(end_price - discount_amount, 0)
+
+    return (end_price, error)
