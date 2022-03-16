@@ -184,9 +184,10 @@
 
     couponForm.addEventListener('submit', function (e) {
         e.preventDefault()
-        console.log("Form submitted...")
+        console.log("Coupon submitted...")
         document.getElementById("coupon-form-button").classList.add("hidden")
         document.getElementById("coupon-field").setAttribute("readonly", true)
+        submitCoupon()
     })
 
     /*
@@ -246,7 +247,7 @@
     }
 
     function submitCoupon() {
-        console.log('Coupon submitted...')
+        console.log('submitCoupon()')
 
         var coupon = couponForm.code.value
 
@@ -262,7 +263,7 @@
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    location.reload()
+                    console.log("SUCCESS! COUPON APPLIED!")
                 })
         }
     }
