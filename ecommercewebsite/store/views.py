@@ -8,11 +8,11 @@ from decimal import Decimal
 from django_countries import Countries
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
-from .utils import cookie_cart, get_order_data, create_guest_order
+from . import utils
 
 # Create your views here.
 def store(request):
-    order_data = get_order_data(request)
+    order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
 
     products = Product.objects.all()
@@ -22,7 +22,7 @@ def store(request):
 
 
 def cart(request):
-    order_data = get_order_data(request)
+    order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
     items_amount = order_data["items_amount"]
@@ -36,7 +36,7 @@ def cart(request):
 
 
 def checkout(request):
-    order_data = get_order_data(request)
+    order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
     items_amount = order_data["items_amount"]
@@ -84,7 +84,7 @@ def process_order(request):
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
     else:
-        customer, order = create_guest_order(request, data)
+        customer, order = utils.create_guest_order(request, data)
 
     # Save shipping information if the order requires shipping
     if order.requires_shipping:
@@ -109,6 +109,18 @@ def process_order(request):
 
     print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
+
+
+def apply_coupon(request):
+    data = json.loads(request.body)
+    coupon_code = data['couponCode']
+
+    if request.user.is_authenticated:
+        customer = request.user.customer
+        order, created = Order.objects.get_or_create(customer=customer, complete=False)
+        order.apply_coupon(coupon_code)
+    
+    return JsonResponse("Coupon applied...", safe=False)
 
 
 def logout_view(request):

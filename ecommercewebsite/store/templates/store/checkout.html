@@ -51,7 +51,8 @@
                 </div>
 
                 <hr>
-                <input id="form-button" class="btn btn-success btn-block" type="submit" value="Continue">
+                <button id="form-button" class="btn btn-success btn-block" type="submit"
+                    value="Continue">Continue</button>
             </form>
         </div>
 
@@ -60,7 +61,7 @@
             <small>Paypal Options</small>
             <!-- Set up a container element for the button -->
             <div id="paypal-button-container"></div>
-        
+
             <!--<button id="make-payment-btn">Make payment</button>-->
         </div>
     </div>
@@ -93,6 +94,21 @@
 
             {% endfor %}
 
+            <!-- Coupon form here -->
+            <div class="col-lg-12">
+                <div class="box-element" id="form-wrapper">
+                    <form id="coupon-form">
+                        <div class="form-field">
+                            <input id="coupon-field" class="form-control" type="text" name="code"
+                                placeholder="Enter coupon here...">
+                        </div>
+
+                        <button id="coupon-form-button" class="btn btn-success btn-block" type="submit"
+                            value="apply-coupon" style="width:min-content">Apply</button>
+                    </form>
+                </div>
+            </div>
+
             <h5>Items: {{order.get_items_amount}}</h5>
             <h3>Total: ${{order.get_cart_price}}</h3>
         </div>
@@ -101,7 +117,8 @@
 
 
 <!-- Include the PayPal JavaScript SDK -->
-<script src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
+<script
+    src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
 <script>
     var total = '{{order.get_cart_price}}'
     // Render the PayPal button into #paypal-button-container
@@ -109,13 +126,13 @@
 
         locale: 'en_US',
         style: {
-        size: 'responsive',
-        color: 'gold',
-        shape: 'pill'
+            size: 'responsive',
+            color: 'gold',
+            shape: 'pill'
         },
 
         // Set up the transaction
-        createOrder: function(data, actions) {
+        createOrder: function (data, actions) {
             return actions.order.create({
                 purchase_units: [{
                     amount: {
@@ -126,8 +143,8 @@
         },
 
         // Finalize the transaction
-        onApprove: function(data, actions) {
-            return actions.order.capture().then(function(orderData) {
+        onApprove: function (data, actions) {
+            return actions.order.capture().then(function (orderData) {
                 // Successful capture! For demo purposes:
                 submitFormData()
                 alert('Transaction completed by ' + details.payer.name.given_name);
@@ -153,6 +170,7 @@
 
 
     var form = document.getElementById('form')
+    var couponForm = document.getElementById('coupon-form')
 
     //csrftoken = form.getElementsByTagName("input")[0]
     //console.log(csrfToken)
@@ -162,6 +180,13 @@
         console.log("Form submitted...")
         document.getElementById("form-button").classList.add("hidden")
         document.getElementById("payment-info").classList.remove("hidden")
+    })
+
+    couponForm.addEventListener('submit', function (e) {
+        e.preventDefault()
+        console.log("Form submitted...")
+        document.getElementById("coupon-form-button").classList.add("hidden")
+        document.getElementById("coupon-field").setAttribute("readonly", true)
     })
 
     /*
@@ -208,17 +233,38 @@
             },
             body: JSON.stringify({ 'userFormData': userFormData, 'shippingInfo': shippingInfo })
         })
-        .then((response) => response.json())
-        .then((data) =>{
-            console.log("Success:", data)
-            alert("Transaction complete.")
+            .then((response) => response.json())
+            .then((data) => {
+                console.log("Success:", data)
+                alert("Transaction complete.")
 
-            cart = {}
-			document.cookie ='cart=' + JSON.stringify(cart) + ";domain=;path=/"
+                cart = {}
+                document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
 
-            window.location.href = "{% url 'store' %}"
-        })
+                window.location.href = "{% url 'store' %}"
+            })
     }
 
+    function submitCoupon() {
+        console.log('Coupon submitted...')
+
+        var coupon = couponForm.code.value
+
+        if (coupon != "") {
+            var url = '/apply_coupon/'
+            fetch(url, {
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({ 'price': total, 'couponCode': coupon })
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    location.reload()
+                })
+        }
+    }
 </script>
 {% endblock content %}

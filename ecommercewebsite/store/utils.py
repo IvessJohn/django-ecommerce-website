@@ -1,5 +1,6 @@
 import json
 from decimal import Decimal
+from django.contrib.auth.models import User
 
 from coupon_management.validations import validate_coupon
 from coupon_management.models import Coupon, Discount
@@ -16,10 +17,10 @@ def get_order_data(request) -> dict:
         requires_shipping = order.requires_shipping
     else:
         cart_data = cookie_cart(request)
-        ordered_items = cart_data['ordered_items']
-        order = cart_data['order']
-        items_amount = cart_data['items_amount']
-        requires_shipping = cart_data['requires_shipping']
+        ordered_items = cart_data["ordered_items"]
+        order = cart_data["order"]
+        items_amount = cart_data["items_amount"]
+        requires_shipping = cart_data["requires_shipping"]
 
     return {
         "order": order,
@@ -88,27 +89,22 @@ def create_guest_order(request, data) -> tuple[Customer, Order]:
         )
     return (customer, order)
 
-def use_coupon_view(request, coupon_code, *args, **kwargs) -> str:
-    user = request.user
-    
-    status = validate_coupon(coupon_code=coupon_code, user=user)
-    if status['valid']:
-        coupon = Coupon.objects.get(code=coupon_code)
-        coupon.use_coupon(user=user)
-    
-        return "OK"
-    
-    return status['message']
 
-def calculate_price_with_coupon(request, price, coupon_code):
+def calculate_price_with_coupon(request, price: Decimal, coupon_code: str, *, use_coupon: bool = False):
     if coupon_code == "":
-        return (price, "")
-    
-    end_price: Decimal = price
+        return (price, "NO_COUPON")
 
-    error: str = use_coupon_view(request, coupon_code)
-    if error == "OK":
-        discount: Discount = Coupon.objects.get(code=coupon_code).discount
+    user: User = request.user
+
+    status = validate_coupon(coupon_code=coupon_code, user=user)
+    if status["valid"]:
+        end_price: Decimal = price
+        coupon: Coupon = Coupon.objects.get(code=coupon_code)
+        discount: Discount = coupon.discount
+        
+        if use_coupon:
+            coupon.use_coupon(user=user)
+
         if discount.is_percentage:
             discount_percentage: int = min(discount.value, 100)
             discount_amount: Decimal = price * discount_percentage * 0.01
@@ -116,4 +112,7 @@ def calculate_price_with_coupon(request, price, coupon_code):
             discount_amount: int = discount.value
         end_price = max(end_price - discount_amount, 0)
 
-    return (end_price, error)
+        return (end_price, "OK")
+    
+    # If the coupon is invalid, return the initial price and the error message
+    return (price, status["message"])
