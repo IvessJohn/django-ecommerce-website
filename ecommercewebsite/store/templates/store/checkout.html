@@ -98,19 +98,33 @@
             <div class="col-lg-12">
                 <div class="box-element" id="form-wrapper">
                     <form id="coupon-form">
+                        {% if request.user.is_authenticated %}
                         <div class="form-field">
                             <input id="coupon-field" class="form-control" type="text" name="code"
                                 placeholder="Enter coupon here...">
                         </div>
 
-                        <button id="coupon-form-button" class="btn btn-success btn-block" type="submit"
+                        <button id="coupon-submit-button" class="btn btn-success btn-block" type="submit"
                             value="apply-coupon" style="width:min-content">Apply</button>
+
+                        <button id="coupon-edit-button" class="btn btn-info btn-block hidden" type="button"
+                            value="edit-coupon" style="width:min-content"><i class="fa-solid fa-pen"></i></button>
+                        {% else %}
+                        <p>Coupons are only available for logged in customers.</p>
+                        <p><a href="{% url 'store' %}">Log in</a> to enter a coupon.</p>
+                        {% endif %}
                     </form>
                 </div>
             </div>
 
             <h5>Items: {{order.get_items_amount}}</h5>
-            <h3>Total: ${{order.get_cart_price}}</h3>
+            <div id="coupon-info" >
+                <hr>
+                <h6>Total: ${{order.get_cart_price}}</h6>
+                <h6 style="color:green">Coupon discount: -$<span id="coupon-discount">{{order.get_discount_amount}}</span></h6>
+                <hr>
+            </div>
+            <h3>Final: $<span id="order-final-price">{{order.get_final_price}}</span></h3>
         </div>
     </div>
 </div>
@@ -120,7 +134,7 @@
 <script
     src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
 <script>
-    var total = '{{order.get_cart_price}}'
+    var total = '{{order.get_final_price}}'
     // Render the PayPal button into #paypal-button-container
     paypal.Buttons({
 
@@ -156,47 +170,74 @@
 </script>
 
 <script type="text/javascript">
-    var requires_shipping = '{{requires_shipping}}'
-    var total = '{{order.get_cart_price}}'
+    var requiresShipping = '{{requires_shipping}}'
+    var total = '{{order.get_final_price}}'
+    var appliedCouponCode = '{{order.applied_coupon.code}}'
+    
+    var form = document.getElementById('form')
+    var couponForm = document.getElementById('coupon-form')
+    var couponEditButton = document.getElementById('coupon-edit-button')
+
     //
     if (user != "AnonymousUser") { document.getElementById("user-info").innerHTML = '' }
-    if (requires_shipping == "False") { document.getElementById("shipping-info").innerHTML = '' }
-    if (user != "AnonymousUser" && requires_shipping == 'False') {
+    if (requiresShipping == "False") { document.getElementById("shipping-info").innerHTML = '' }
+    if (user != "AnonymousUser" && requiresShipping == 'False') {
         // Hide the info form altogether
         document.getElementById("form-wrapper").classList.add("hidden")
         // Show the payment button
         document.getElementById("payment-info").classList.remove("hidden")
     }
 
+    if (appliedCouponCode != "") {
+        couponInputField = document.getElementById("coupon-field")
+        couponSubmitButton = document.getElementById("coupon-submit-button")
 
-    var form = document.getElementById('form')
-    var couponForm = document.getElementById('coupon-form')
+        couponInputField.value = appliedCouponCode
+        lockCouponEntering()
+    }
 
     //csrftoken = form.getElementsByTagName("input")[0]
     //console.log(csrfToken)
 
     form.addEventListener('submit', function (e) {
+        //console.log("Form submitted...")
         e.preventDefault()
-        console.log("Form submitted...")
         document.getElementById("form-button").classList.add("hidden")
         document.getElementById("payment-info").classList.remove("hidden")
     })
-
     couponForm.addEventListener('submit', function (e) {
+        //console.log("Coupon submitted...")
         e.preventDefault()
-        console.log("Coupon submitted...")
-        document.getElementById("coupon-form-button").classList.add("hidden")
-        document.getElementById("coupon-field").setAttribute("readonly", true)
+        lockCouponEntering()
         submitCoupon()
     })
-
-    /*
-    makePaymentButton = document.getElementById("make-payment-btn")
-    makePaymentButton.addEventListener('click', function (e) {
-        submitFormData()
+    couponEditButton.addEventListener('click', function (e) {
+        e.preventDefault()
+        unlockCouponEntering()
     })
-    */
 
+    // #region FOR: Updating visual (HTML) elements
+
+    function lockCouponEntering() {
+        document.getElementById("coupon-submit-button").classList.add("hidden")
+        document.getElementById("coupon-field").setAttribute("readonly", true)
+        couponEditButton.classList.remove("hidden")
+    }
+
+    function unlockCouponEntering() {
+        document.getElementById("coupon-submit-button").classList.remove("hidden")
+        document.getElementById("coupon-field").removeAttribute("readonly")
+        couponEditButton.classList.add("hidden")
+    }
+
+    function updatePrices(finalPrice, discountValue) {
+
+
+    }
+
+    // #endregion
+
+    // #region FOR: Submitting data
     function submitFormData() {
         console.log("Payment button clicked")
 
@@ -217,13 +258,16 @@
             userFormData.name = form.name.value
             userFormData.email = form.email.value
         }
-        if (requires_shipping == "True") {
+        if (requiresShipping == "True") {
             shippingInfo.address = form.address.value
             shippingInfo.city = form.city.value
             shippingInfo.state = form.state.value
             shippingInfo.country = form.country.value
             shippingInfo.zipcode = form.zipcode.value
         }
+
+        total = document.getElementById('order-final-price').innerHTML
+        console.log(total)
 
         var url = '/process_order/'
         fetch(url, {
@@ -263,9 +307,12 @@
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log("SUCCESS! COUPON APPLIED!")
+                    location.reload()
                 })
         }
     }
+    
+    // #endregion
+
 </script>
 {% endblock content %}

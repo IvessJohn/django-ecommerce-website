@@ -103,7 +103,7 @@ def process_order(request):
     transaction_id = datetime.datetime.now().timestamp()
     total = Decimal(data["userFormData"]["total"])
     order.transaction_id = transaction_id
-    if total == order.get_cart_price:
+    if total == order.get_final_price:
         order.complete = True
     order.save()
 

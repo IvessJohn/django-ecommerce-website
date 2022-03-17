@@ -50,7 +50,7 @@ class Order(models.Model):
     )
     complete: models.BooleanField = models.BooleanField(default=False)
     transaction_id: models.CharField = models.CharField(
-        max_length=100, null=True, unique=True
+        max_length=100, null=True, unique=True, blank=True
     )
     applied_coupon = models.OneToOneField(
         Coupon, on_delete=models.SET_NULL, null=True, blank=True
@@ -83,14 +83,14 @@ class Order(models.Model):
 
     @property
     def get_discount_amount(self):
-        if self.coupon:
+        if self.applied_coupon:
             discount: Discount = self.applied_coupon.discount
 
             if not discount.is_percentage:
                 return Decimal(discount.value)
             else:
                 discount_percentage: int = min(discount.value, 100)
-                return self.get_cart_price * discount_percentage * 0.01
+                return Decimal(round(self.get_cart_price * discount_percentage * Decimal(0.01), 2))
 
         return Decimal(0.0)
 
