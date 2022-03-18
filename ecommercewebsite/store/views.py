@@ -74,7 +74,11 @@ def update_item(request):
     if order_item.quantity <= 0:
         order_item.delete()
 
-    return JsonResponse("Item was updated", safe=False)
+    response: dict = {
+        "ordered_item_quantity": order_item.quantity,
+        "total_items": order.get_items_amount,
+    }
+    return JsonResponse(json.dumps(response), safe=False)
 
 
 def process_order(request):
@@ -113,13 +117,13 @@ def process_order(request):
 
 def apply_coupon(request):
     data = json.loads(request.body)
-    coupon_code = data['couponCode']
+    coupon_code = data["couponCode"]
 
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         order.apply_coupon(coupon_code)
-    
+
     return JsonResponse("Coupon applied...", safe=False)
 
 

@@ -37,7 +37,7 @@
 
             {% for item in ordered_items %}
             
-            <div class="cart-row">
+            <div class="cart-row" id="item{{item.product.id}}-div">
                 <div style="flex: 2;"><img class="row-image" src="{{item.product.imageURL}}"></div>
                 <div style="flex: 2;">{{item.product.name}}</div>
                 <div style="flex: 1;">${{item.product.price}}</div>

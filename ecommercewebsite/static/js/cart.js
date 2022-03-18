@@ -2,21 +2,20 @@ var pagePath = window.location.pathname;
 
 var updateBtns = document.getElementsByClassName('update-cart')
 
-// Get the amount of ordered items
 var cartItemsQuantityElement = document.getElementById(`cart-total`)
-var itemQuantity = parseInt(cartItemsQuantityElement.innerHTML)
+var itemQuantity = getItemAmountFromCookies()
+console.log(itemQuantity)
 
 for (i = 0; i < updateBtns.length; i++) {
 	updateBtns[i].addEventListener('click', function () {
 		var productId = this.dataset.product
 		var action = this.dataset.action
-		console.log('productId:', productId, 'Action:', action)
+		//console.log('productId:', productId, 'Action:', action)
 
 		console.log("USER:", user)
 		if (user == "AnonymousUser") {
 			addCartCookieItem(productId, action)
 		} else {
-			//console.log("User is authenticated (" + user + ") - sending data...")
 			updateUserOrder(productId, action)
 		}
 	})
@@ -37,18 +36,28 @@ function updateUserOrder(productId, action) {
 		},
 		body: JSON.stringify({ 'productId': productId, 'action': action })
 	})
-	.then((response) => {
-		return response.json()
-	})
-	.then((data) => function () {
-		location.reload()
-	})
+		.then((response) => {
+			console.log("updateUserOrder first then")
+			return response.json()
+		})
+		.then((data) => {
+			var data_parsed = JSON.parse(data)
+			updateCartItemsCounter(data_parsed['total_items'])
+
+			if (pagePath == "/cart/") {
+				var productQuantityElement = document.getElementById(`item${productId}-quantity`)
+				productQuantityElement.innerHTML = data_parsed['ordered_item_quantity']
+
+				if (data_parsed['ordered_item_quantity'] <= 0) {
+					document.getElementById(`item${productId}-div`).remove()
+					console.log(`remove item ${productId}`)
+				}
+			}
+		})
 }
 
 
 function addCartCookieItem(productId, action) {
-	console.log('addCartCookieItem()')
-
 	if (action == 'add') {
 		if (cart[productId] == undefined) {
 			cart[productId] = { 'quantity': 1 }
@@ -59,12 +68,6 @@ function addCartCookieItem(productId, action) {
 	} else if (action == 'remove_one') {
 		if (cart[productId]) {
 			cart[productId]['quantity'] -= 1
-
-			if (cart[productId]['quantity'] <= 0) {
-				console.log('Remove item #', productId)
-				delete cart[productId]
-				location.reload()
-			}
 		}
 		itemQuantity -= 1
 	}
@@ -72,9 +75,33 @@ function addCartCookieItem(productId, action) {
 	document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
 
 	// Update quantity labels
-	cartItemsQuantityElement.innerHTML = itemQuantity
+	updateCartItemsCounter(itemQuantity)
 	if (pagePath == "/cart/") {
 		var productQuantityElement = document.getElementById(`item${productId}-quantity`)
 		productQuantityElement.innerHTML = cart[productId]['quantity']
+
+		if (cart[productId]['quantity'] <= 0) {
+			document.getElementById(`item${productId}-div`).remove()
+			console.log(`remove item ${productId}`)
+		}
 	}
+
+	// Remove the item cookie if its quantity is 0 or less
+	if (cart[productId]['quantity'] <= 0) {
+		console.log('Remove item #', productId)
+		delete cart[productId]
+	}
+}
+
+function updateCartItemsCounter(new_total) {
+	console.log("updateCartItemsCounter(" + new_total + ")")
+	cartItemsQuantityElement.innerHTML = new_total
+}
+
+function getItemAmountFromCookies() {
+	var amount = 0
+	for (const item_id in cart) {
+		amount += parseInt(cart[item_id]['quantity'])
+	}
+	return amount
 }
