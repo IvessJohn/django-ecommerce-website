@@ -1,7 +1,4 @@
-{% extends "store/main.html" %}
-{% load static %}
-
-{% block content %}
+{% extends "store/main.html" %} {% load static %} {% block content %}
 
 <div class="row">
     <div class="col-lg-12">
@@ -13,9 +10,15 @@
             <br>
             <table class="table">
                 <tr>
-                    <th><h5>Items: <strong>{{order.get_items_amount}}</strong></h5></th>
-                    <th><h5>Total: <strong>${{order.get_cart_price}}</strong></h5></th>
-                    <th><h5>Shipping: <strong>{{order.requires_shipping}}</strong></h5></th>
+                    <th>
+                        <h5>Items: <strong><span id="items-total">{{order.get_items_amount}}</span></strong></h5>
+                    </th>
+                    <th>
+                        <h5>Total: <strong>$<span id="cart-price">{{order.get_cart_price}}</span></strong></h5>
+                    </th>
+                    <th>
+                        <h5>Shipping: <strong><span id="cart-is-shipping">{{order.requires_shipping}}</span></strong></h5>
+                    </th>
                     <th>
                         <a style="float:right; margin: 5px;" class="btn btn-success" href="{% url 'checkout' %}">Checkout</a>
                     </th>
@@ -36,7 +39,7 @@
             </div>
 
             {% for item in ordered_items %}
-            
+
             <div class="cart-row" id="item{{item.product.id}}-div">
                 <div style="flex: 2;"><img class="row-image" src="{{item.product.imageURL}}"></div>
                 <div style="flex: 2;">{{item.product.name}}</div>
@@ -45,7 +48,7 @@
                     <p id="item{{item.product.id}}-quantity" class="quantity">{{item.quantity}}</p>
                     <div class="quantity">
                         <img data-product="{{item.product.id}}" data-action="add" class="chg-quantity update-cart" src="{% static  'images/arrow_up.png' %}">
-                
+
                         <img data-product="{{item.product.id}}" data-action="remove_one" class="chg-quantity update-cart" src="{% static  'images/arrow_down.png' %}">
                     </div>
                 </div>
