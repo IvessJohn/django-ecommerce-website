@@ -41,23 +41,25 @@ def cookie_cart(request) -> dict:
 
     for i in cart:
         if Product.objects.filter(id=i).exists():
-            product: Product = Product.objects.get(id=i)
             product_quantity: int = cart[i]["quantity"]
+            if product_quantity > 0:
+                product: Product = Product.objects.get(id=i)
 
-            order["get_items_amount"] += product_quantity
-            order["get_cart_price"] += product.price * product_quantity
-            if product.digital == False:
-                order["requires_shipping"] = True
+                order["get_items_amount"] += product_quantity
+                order["get_cart_price"] += product.price * product_quantity
+                if product.digital == False:
+                    order["requires_shipping"] = True
 
-            ordered_item = {
-                "product": product,
-                "quantity": product_quantity,
-                "get_total_price": product.price * product_quantity,
-            }
+                ordered_item = {
+                    "product": product,
+                    "quantity": product_quantity,
+                    "get_total_price": product.price * product_quantity,
+                }
 
-            ordered_items.append(ordered_item)
+                ordered_items.append(ordered_item)
 
     items_amount = order["get_items_amount"]
+    order["get_cart_price"] = str(order["get_cart_price"])
 
     return {
         "ordered_items": ordered_items,

@@ -4,19 +4,23 @@ var updateBtns = document.getElementsByClassName('update-cart')
 
 var cartItemsQuantityElement = document.getElementById(`cart-total`)
 var itemQuantity = getItemAmountFromCookies()
-console.log(itemQuantity)
 
 for (i = 0; i < updateBtns.length; i++) {
     updateBtns[i].addEventListener('click', function() {
         var productId = this.dataset.product
         var action = this.dataset.action
-            //console.log('productId:', productId, 'Action:', action)
 
         console.log("USER:", user)
+
         if (user == "AnonymousUser") {
             addCartCookieItem(productId, action)
         } else {
             updateUserOrder(productId, action)
+        }
+
+        updateNavbarItemsCounter(itemQuantity)
+        if (pagePath == "/cart/") {
+            updateCartTotals()
         }
     })
 
@@ -24,7 +28,7 @@ for (i = 0; i < updateBtns.length; i++) {
 
 
 function updateUserOrder(productId, action) {
-    console.log("User is authenticated - sending data...")
+    //console.log("User is authenticated - sending data...")
 
     var url = "/update_item/"
 
@@ -37,21 +41,14 @@ function updateUserOrder(productId, action) {
             body: JSON.stringify({ 'productId': productId, 'action': action })
         })
         .then((response) => {
-            console.log("updateUserOrder first then")
             return response.json()
         })
         .then((data) => {
-            var data_parsed = JSON.parse(data)
-            updateCartItemsCounter(data_parsed['total_items'])
+            var dataParsed = JSON.parse(data)
+            itemQuantity = dataParsed['total_items']
 
             if (pagePath == "/cart/") {
-                var productQuantityElement = document.getElementById(`item${productId}-quantity`)
-                productQuantityElement.innerHTML = data_parsed['ordered_item_quantity']
-
-                if (data_parsed['ordered_item_quantity'] <= 0) {
-                    document.getElementById(`item${productId}-div`).remove()
-                    console.log(`remove item ${productId}`)
-                }
+                updateCartProduct(productId, dataParsed['ordered_item_quantity'])
             }
         })
 }
@@ -71,33 +68,34 @@ function addCartCookieItem(productId, action) {
         itemQuantity -= 1
     }
 
-    document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
 
     // Update labels
-    updateCartItemsCounter(itemQuantity)
     if (pagePath == "/cart/") {
-
-
-        var productQuantityElement = document.getElementById(`item${productId}-quantity`)
-        productQuantityElement.innerHTML = cart[productId]['quantity']
-
-        if (cart[productId]['quantity'] <= 0) {
-            document.getElementById(`item${productId}-div`).remove()
-            console.log(`remove item ${productId}`)
-        }
+        updateCartProduct(productId, cart[productId]['quantity'])
     }
 
     // Remove the item cookie if its quantity is 0 or less
-    if (cart[productId]['quantity'] <= 0) {
-        console.log('Remove item #', productId)
-        delete cart[productId]
+    //if (cart[productId]['quantity'] <= 0) {
+    //    console.log('Remove item #', productId)
+    //    delete cart['productId']
+    //}
+
+    document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
+}
+
+function updateCartProduct(productId, productQuantity) {
+    var productQuantityElement = document.getElementById(`item${productId}-quantity`)
+    productQuantityElement.innerHTML = productQuantity
+
+    if (productQuantity <= 0) {
+        document.getElementById(`item${productId}-div`).remove()
     }
 }
 
-function updateCartItemsCounter(new_total) {
-    //console.log("updateCartItemsCounter(" + new_total + ")")
+function updateNavbarItemsCounter(new_total) {
     cartItemsQuantityElement.innerHTML = new_total
 }
+
 
 function getItemAmountFromCookies() {
     var amount = 0
@@ -105,4 +103,23 @@ function getItemAmountFromCookies() {
         amount += parseInt(cart[item_id]['quantity'])
     }
     return amount
+}
+
+function updateCartTotals() {
+    var orderPrice = 0.0
+    itemQuantity = 0
+    var cartRows = document.getElementsByClassName("cart-row actual")
+    for (let cartRow of cartRows) {
+        var itemId = cartRow.dataset.itemproductid
+
+        var itemPrice = parseInt(parseFloat(document.getElementById(`item${itemId}-price`).innerHTML * 100))
+        var quantity = parseInt(document.getElementById(`item${itemId}-quantity`).innerHTML)
+        var itemPriceTotal = itemPrice * quantity / 100
+
+        orderPrice += itemPriceTotal
+        itemQuantity += quantity
+        document.getElementById(`item${itemId}-price-total`).innerHTML = itemPriceTotal.toFixed(2)
+    }
+    document.getElementById("items-total").innerHTML = itemQuantity
+    document.getElementById("cart-price").innerHTML = orderPrice.toFixed(2)
 }

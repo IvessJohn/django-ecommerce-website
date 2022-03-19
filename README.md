@@ -8,7 +8,10 @@ Order products, edit your order, and process it.
 
 _*More demo materials available in [publicity/](publicity/) directory_
 
-### Functionality:
+### Features:
+- Both authenticated and unauthenticated users can order the goods (authenticated is handled by the backend, unauthenticated relies on JS and cookies)
+
+#### Functionality:
 
 - Store page:
 - - Look through the available products

@@ -126,6 +126,9 @@ def apply_coupon(request):
 
     return JsonResponse("Coupon applied...", safe=False)
 
+def get_order(request):
+    order_data = utils.get_order_data(request)
+    return JsonResponse(json.dumps(order_data))
 
 def logout_view(request):
     logout(request)
