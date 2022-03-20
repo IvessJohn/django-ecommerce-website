@@ -8,17 +8,21 @@ Order products, edit your order, and process it.
 
 _*More demo materials available in [publicity/](publicity/)_
 
-### Features:
-- Both authenticated and unauthenticated users can order the goods (authenticated is handled by the backend, unauthenticated relies on JS and cookies)
+---
 
-#### Functionality:
+## Features:
+- Both authenticated and unauthenticated users can order the goods (authenticated is handled by the backend, unauthenticated handled by JS and cookies)
+
+### Functionality:
 
 Store page:
 - Look through the available products
 - Add products to your cart
+
 Cart page:
 - See the summary of your order
 - See your ordered items with basic info on them
+
 Checkout page:
 - See your order's summary
 - Apply a coupon to your order _(only for authenticated users)_
@@ -28,12 +32,12 @@ Checkout page:
 
 ## Credits
 
-**Used tools**: Django, Python.
+**Used tools**: Django 4.0, Python 3.10.
 
 ## Integrations:
 - [django-coupon-management](https://pypi.org/project/django-coupon-management/)
 - [django-countries](https://pypi.org/project/django-countries/)
-- PayPal
+- [PayPal Buttons](https://developer.paypal.com/demo/checkout/#/pattern/style)
 
 ### Supporting libraries
 - Google Fonts
