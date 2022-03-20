@@ -1,5 +1,5 @@
 # django-ecommerce-website
-### An ecommerce website demo made by [Ivan "John Ivess" Shyika](https://www.youtube.com/c/JohnIvess).
+### An ecommerce applicaton made by [Ivan "John Ivess" Shyika](https://www.youtube.com/c/JohnIvess).
 
 ## Project description:
 Order products, edit your order, and process it.
