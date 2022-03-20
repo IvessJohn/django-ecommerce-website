@@ -4,25 +4,25 @@
 ## Project description:
 Order products, edit your order, and process it.
 
-![Demo GIF](publicity/demo.mp4)
+![Demo GIF](publicity/demo.gif)
 
-_*More demo materials available in [publicity/](publicity/) directory_
+_*More demo materials available in [publicity/](publicity/)_
 
 ### Features:
 - Both authenticated and unauthenticated users can order the goods (authenticated is handled by the backend, unauthenticated relies on JS and cookies)
 
 #### Functionality:
 
-- Store page:
-- - Look through the available products
-- - Add products to your cart
-- Cart page:
-- - See the summary of your order
-- - See your ordered items with basic info on them
-- Checkout page:
-- - See your order's summary
-- - Apply a coupon to your order _(only for authenticated users)_
-- - Pay for your order using PayPal
+Store page:
+- Look through the available products
+- Add products to your cart
+Cart page:
+- See the summary of your order
+- See your ordered items with basic info on them
+Checkout page:
+- See your order's summary
+- Apply a coupon to your order _(only for authenticated users)_
+- Pay for your order using PayPal
 
 ---
 
