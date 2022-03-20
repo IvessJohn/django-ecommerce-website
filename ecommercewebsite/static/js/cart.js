@@ -6,17 +6,13 @@ var cartItemsQuantityElement = document.getElementById(`cart-total`)
 var itemQuantity = getItemAmountFromCookies()
 
 for (i = 0; i < updateBtns.length; i++) {
-    updateBtns[i].addEventListener('click', function() {
+    updateBtns[i].addEventListener('click', async function() {
         var productId = this.dataset.product
         var action = this.dataset.action
 
-        console.log("USER:", user)
+        console.log("USER:", user);
 
-        if (user == "AnonymousUser") {
-            addCartCookieItem(productId, action)
-        } else {
-            updateUserOrder(productId, action)
-        }
+        await updateProductQuantity(productId, action)
 
         updateNavbarItemsCounter(itemQuantity)
         if (pagePath == "/cart/") {
@@ -26,13 +22,20 @@ for (i = 0; i < updateBtns.length; i++) {
 
 }
 
+async function updateProductQuantity(productId, action) {
+    if (user == "AnonymousUser") {
+        addCartCookieItem(productId, action)
+    } else {
+        await updateUserOrder(productId, action)
+    }
+}
 
-function updateUserOrder(productId, action) {
+async function updateUserOrder(productId, action) {
     //console.log("User is authenticated - sending data...")
 
     var url = "/update_item/"
 
-    fetch(url, {
+    await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
