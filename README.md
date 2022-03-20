@@ -4,7 +4,7 @@
 ## Project description:
 Order products, edit your order, and process it.
 
-![Demo GIF](publicity/demo.gif)
+![Demo GIF](publicity/demo.mp4)
 
 _*More demo materials available in [publicity/](publicity/) directory_
 
