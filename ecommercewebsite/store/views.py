@@ -1,16 +1,58 @@
-from django.shortcuts import render, redirect
-from django.contrib.auth import logout
-from django.http import JsonResponse
 import json
 import datetime
 from decimal import Decimal
+from django.shortcuts import render, redirect
+from django.contrib.auth import logout
+from django.http import JsonResponse
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.contrib.auth import authenticate, login
 
 from django_countries import Countries
 
 from .models import Customer, Product, Order, OrderItem, ShippingInformation
 from . import utils
+from .forms import CreateUserForm
 
 # Create your views here.
+def register_view(request):
+    form = CreateUserForm()
+
+    if request.method == "POST":
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            user: User = form.save()
+            username = user.username
+
+            # messages.success(request, f"Account for {username} was created successfully!")
+
+            return redirect("login")
+
+    context = {
+        "form": form,
+    }
+    return render(request, "store/register.html", context)
+
+
+def login_view(request):
+    if request.method == "POST":
+        _username = request.POST.get("username")
+        _password = request.POST.get("password")
+
+        user = authenticate(request.POST, username=_username, password=_password)
+
+        # if user:
+        if user is not None:
+            login(request, user)
+            return redirect("store")
+        else:
+            # messages.info(request, 'Username or password is incorrect.')
+            pass
+
+    context = {}
+    return render(request, "store/login.html", context)
+
+
 def store(request):
     order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
@@ -126,9 +168,11 @@ def apply_coupon(request):
 
     return JsonResponse("Coupon applied...", safe=False)
 
+
 def get_order(request):
     order_data = utils.get_order_data(request)
     return JsonResponse(json.dumps(order_data))
+
 
 def logout_view(request):
     logout(request)
