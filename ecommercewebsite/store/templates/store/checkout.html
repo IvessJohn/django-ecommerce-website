@@ -1,7 +1,4 @@
-{% extends "store/main.html" %}
-{% load static %}
-
-{% block content %}
+{% extends "store/main.html" %} {% load static %} {% block content %}
 
 <div class="row">
     <!-- User and shipping info -->
@@ -9,6 +6,7 @@
         <div class="box-element" id="form-wrapper">
             <form id="form">
                 {# {% csrf_token %} #}
+                <!-- User info: Name and email (shown to unauthenticated users) -->
                 <div id="user-info">
                     <div class="form-field">
                         <input required class="form-control" type="text" name="name" placeholder="Name...">
@@ -19,6 +17,7 @@
                     </div>
                 </div>
 
+                <!-- Shipping info: full address (shown if the order requires shipping) -->
                 <div id="shipping-info">
                     <hr>
                     <p>Shipping Information:</p>
@@ -51,8 +50,7 @@
                 </div>
 
                 <hr>
-                <button id="form-button" class="btn btn-success btn-block" type="submit"
-                    value="Continue">Continue</button>
+                <button id="form-button" class="btn btn-success btn-block" type="submit" value="Continue">Continue</button>
             </form>
         </div>
 
@@ -75,7 +73,7 @@
             <h2>Order Summary</h2>
             <hr>
 
-            <!-- Full order here -->
+            <!-- #region Full order -->
             <div class="cart-row">
                 <div style="flex: 2;"></div>
                 <div style="flex: 2;"><strong>Item</strong></div>
@@ -94,22 +92,20 @@
 
             {% endfor %}
 
-            <!-- Coupon form here -->
+            <!-- #endregion -->
+
+            <!-- #region Coupon form -->
             <div class="col-lg-12">
                 <div class="box-element" id="form-wrapper">
                     <form id="coupon-form">
                         {% if request.user.is_authenticated %}
                         <div class="form-field">
-                            <input id="coupon-field" class="form-control" type="text" name="code"
-                                placeholder="Enter coupon here...">
+                            <input id="coupon-field" class="form-control" type="text" name="code" placeholder="Enter coupon here...">
                         </div>
 
-                        <button id="coupon-submit-button" class="btn btn-success btn-block" type="submit"
-                            value="apply-coupon" style="width:min-content">Apply</button>
+                        <button id="coupon-submit-button" class="btn btn-success btn-block" type="submit" value="apply-coupon" style="width:min-content">Apply</button>
 
-                        <button id="coupon-edit-button" class="btn btn-info btn-block hidden" type="button"
-                            value="edit-coupon" style="width:min-content"><i class="fa-solid fa-pen"></i></button>
-                        {% else %}
+                        <button id="coupon-edit-button" class="btn btn-info btn-block hidden" type="button" value="edit-coupon" style="width:min-content"><i class="fa-solid fa-pen"></i></button> {% else %}
                         <p>Coupons are available only for logged in customers.</p>
                         <p><a href="{% url 'store' %}">Log in</a> to enter a coupon.</p>
                         {% endif %}
@@ -117,8 +113,10 @@
                 </div>
             </div>
 
+            <!-- #endregion -->
+
             <h5>Items: {{order.get_items_amount}}</h5>
-            <div id="coupon-info" >
+            <div id="coupon-info">
                 <hr>
                 <h6>Total: ${{order.get_cart_price}}</h6>
                 <h6 style="color:green">Coupon discount: -$<span id="coupon-discount">{{order.get_discount_amount}}</span></h6>
@@ -131,11 +129,11 @@
 
 
 <!-- Include the PayPal JavaScript SDK -->
-<script
-    src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
+<script src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
 <script>
     var total = '{{order.get_final_price}}'
-    // Render the PayPal button into #paypal-button-container
+
+    // Render the PayPal button(s) into #paypal-button-container
     paypal.Buttons({
 
         locale: 'en_US',
@@ -146,7 +144,7 @@
         },
 
         // Set up the transaction
-        createOrder: function (data, actions) {
+        createOrder: function(data, actions) {
             return actions.order.create({
                 purchase_units: [{
                     amount: {
@@ -157,8 +155,8 @@
         },
 
         // Finalize the transaction
-        onApprove: function (data, actions) {
-            return actions.order.capture().then(function (orderData) {
+        onApprove: function(data, actions) {
+            return actions.order.capture().then(function(orderData) {
                 // Successful capture! For demo purposes:
                 submitFormData()
                 alert('Transaction completed by ' + details.payer.name.given_name);
@@ -169,22 +167,32 @@
     }).render('#paypal-button-container');
 </script>
 
+<script type="text/javascript" src="{% static 'js/checkout.js' %}"></script>
 <script type="text/javascript">
     var requiresShipping = '{{requires_shipping}}'
     var total = '{{order.get_final_price}}'
     var appliedCouponCode = '{{order.applied_coupon.code}}'
-    
+
+    // #region Get the forms and the elements that submit data
+
     var form = document.getElementById('form')
     var couponForm = document.getElementById('coupon-form')
     var couponEditButton = document.getElementById('coupon-edit-button')
 
+    // #endregion
+
     //
-    if (user != "AnonymousUser") { document.getElementById("user-info").innerHTML = '' }
-    if (requiresShipping == "False") { document.getElementById("shipping-info").innerHTML = '' }
+    if (user != "AnonymousUser") {
+        document.getElementById("user-info").innerHTML = ''
+    }
+    if (requiresShipping == "False") {
+        document.getElementById("shipping-info").innerHTML = ''
+    }
     if (user != "AnonymousUser" && requiresShipping == 'False') {
         // Hide the info form altogether
         document.getElementById("form-wrapper").classList.add("hidden")
-        // Show the payment button
+
+        // Show the payment button right away
         document.getElementById("payment-info").classList.remove("hidden")
     }
 
@@ -199,19 +207,19 @@
     //csrftoken = form.getElementsByTagName("input")[0]
     //console.log(csrfToken)
 
-    form.addEventListener('submit', function (e) {
+    form.addEventListener('submit', function(e) {
         //console.log("Form submitted...")
         e.preventDefault()
         document.getElementById("form-button").classList.add("hidden")
         document.getElementById("payment-info").classList.remove("hidden")
     })
-    couponForm.addEventListener('submit', function (e) {
+    couponForm.addEventListener('submit', function(e) {
         //console.log("Coupon submitted...")
         e.preventDefault()
         lockCouponEntering()
         submitCoupon()
     })
-    couponEditButton.addEventListener('click', function (e) {
+    couponEditButton.addEventListener('click', function(e) {
         e.preventDefault()
         unlockCouponEntering()
     })
@@ -228,11 +236,6 @@
         document.getElementById("coupon-submit-button").classList.remove("hidden")
         document.getElementById("coupon-field").removeAttribute("readonly")
         couponEditButton.classList.add("hidden")
-    }
-
-    function updatePrices(finalPrice, discountValue) {
-
-
     }
 
     // #endregion
@@ -271,13 +274,16 @@
 
         var url = '/process_order/'
         fetch(url, {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': csrftoken,
-            },
-            body: JSON.stringify({ 'userFormData': userFormData, 'shippingInfo': shippingInfo })
-        })
+                method: "POST",
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrftoken,
+                },
+                body: JSON.stringify({
+                    'userFormData': userFormData,
+                    'shippingInfo': shippingInfo
+                })
+            })
             .then((response) => response.json())
             .then((data) => {
                 console.log("Success:", data)
@@ -290,6 +296,9 @@
             })
     }
 
+    /**
+     * Submit the applied coupon to the back end
+     */
     function submitCoupon() {
         console.log('submitCoupon()')
 
@@ -298,21 +307,23 @@
         if (coupon != "") {
             var url = '/apply_coupon/'
             fetch(url, {
-                method: "POST",
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': csrftoken,
-                },
-                body: JSON.stringify({ 'price': total, 'couponCode': coupon })
-            })
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrftoken,
+                    },
+                    body: JSON.stringify({
+                        'price': total,
+                        'couponCode': coupon
+                    })
+                })
                 .then((response) => response.json())
                 .then((data) => {
                     location.reload()
                 })
         }
     }
-    
-    // #endregion
 
+    // #endregion
 </script>
 {% endblock content %}

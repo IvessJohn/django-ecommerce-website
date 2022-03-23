@@ -1,10 +1,8 @@
-{% extends "store/main.html" %}
-{% load static %}
-
-{% block content %}
+{% extends "store/main.html" %} {% load static %} {% block content %}
 
 <div class="row">
     {% for product in products %}
+    <!-- {{product.name}} thumbnail -->
     <div class="col-lg-4">
         <img class="thumbnail" src="{{product.imageURL}}">
 

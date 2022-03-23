@@ -11,6 +11,10 @@ from coupon_management.models import Coupon, Discount
 
 
 class Customer(models.Model):
+    """Customer contains all the important customer information.
+    Orders are drectly tied to Customers.
+    """
+
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name: models.CharField = models.CharField(max_length=200, null=True, blank=False)
     email: models.CharField = models.CharField(max_length=200, blank=True)
@@ -20,6 +24,8 @@ class Customer(models.Model):
 
 
 class Product(models.Model):
+    """Product contains all the information on a certain good."""
+
     name: models.CharField = models.CharField(max_length=200, blank=False)
     price: models.DecimalField = models.DecimalField(
         max_digits=11, decimal_places=2, blank=False, null=True
@@ -34,6 +40,7 @@ class Product(models.Model):
 
     @property
     def imageURL(self):
+        """Return a valid image URL, or an empty string."""
         try:
             url = self.image.url
         except:
@@ -42,6 +49,8 @@ class Product(models.Model):
 
 
 class Order(models.Model):
+    """Contains information on an order."""
+
     customer: models.ForeignKey = models.ForeignKey(
         Customer, on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -61,20 +70,28 @@ class Order(models.Model):
 
     @property
     def get_cart_price(self):
+        """Return the total price of the products in this order
+        WITHOUT any discounts applied.
+        """
         orderitems = self.orderitem_set.all()
         return sum(item.get_total_price for item in orderitems)
 
     @property
     def get_final_price(self):
+        """Return the total price of the products in this order
+        WITH discounts applied (if there are any).
+        """
         return self.__calculate_final_price()
 
     @property
     def get_items_amount(self):
+        """Return the total item count of this order."""
         orderitems = self.orderitem_set.all()
         return sum(item.quantity for item in orderitems)
 
     @property
     def requires_shipping(self):
+        """Return if the order requires shipping, i.e. has non-digital products ordered."""
         if len(self.orderitem_set.all()) == 0:
             return False
         return any(
@@ -83,6 +100,7 @@ class Order(models.Model):
 
     @property
     def get_discount_amount(self):
+        """Return the exact discount value in USD."""
         if self.applied_coupon:
             discount: Discount = self.applied_coupon.discount
 
@@ -90,11 +108,14 @@ class Order(models.Model):
                 return Decimal(discount.value)
             else:
                 discount_percentage: int = min(discount.value, 100)
-                return Decimal(round(self.get_cart_price * discount_percentage * Decimal(0.01), 2))
+                return Decimal(
+                    round(self.get_cart_price * discount_percentage * Decimal(0.01), 2)
+                )
 
         return Decimal(0.0)
 
     def apply_coupon(self, coupon_code):
+        """Apply a coupon, changing the value of `self.applied_coupon`. The coupon will be used."""
         print(str(self) + ": applying coupon - " + repr(coupon_code))
         user: User = self.customer.user
 
@@ -107,6 +128,7 @@ class Order(models.Model):
             self.save()
 
     def __calculate_final_price(self):
+        """Calculate the end price of the order."""
         full_price: Decimal = self.get_cart_price
 
         if self.applied_coupon:
@@ -117,6 +139,10 @@ class Order(models.Model):
 
 
 class OrderItem(models.Model):
+    """Describes an ordered item: the product ordered, its quantity,
+    which order it's tied to, etc.
+    """
+
     product: models.ForeignKey = models.ForeignKey(
         Product, on_delete=models.SET_NULL, null=True, unique=False
     )
@@ -132,12 +158,15 @@ class OrderItem(models.Model):
 
     @property
     def get_total_price(self):
+        """Return the total price of this ordered item."""
         if self.product:
             return self.product.price * self.quantity
         return Decimal(0.0)
 
 
 class ShippingInformation(models.Model):
+    """Contains a shipping address."""
+
     customer: models.ForeignKey = models.ForeignKey(
         Customer, on_delete=models.SET_NULL, null=True, unique=False
     )

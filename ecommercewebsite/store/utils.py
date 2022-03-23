@@ -1,3 +1,6 @@
+"""A script containing often-used methods, or the methods that should be moved to a
+separate file due to their size.
+"""
 import json
 from decimal import Decimal
 from django.contrib.auth.models import User
@@ -9,6 +12,10 @@ from .models import *
 
 
 def get_order_data(request) -> dict:
+    """Get the current order data as a dictionary.
+    Data is retrieved either from the database (if the user is authenticated),
+    or from browser cookies (`cart` cookie created for unauthenticated users).
+    """
     if request.user.is_authenticated:
         customer = request.user.customer
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
@@ -31,6 +38,7 @@ def get_order_data(request) -> dict:
 
 
 def cookie_cart(request) -> dict:
+    """Retrieve order information from the `cart` cookie."""
     ordered_items = []
     order = {"get_cart_price": 0, "get_items_amount": 0, "requires_shipping": False}
     items_amount = order["get_items_amount"]
@@ -70,6 +78,9 @@ def cookie_cart(request) -> dict:
 
 
 def create_guest_order(request, data) -> tuple[Customer, Order]:
+    """Create an order for a guest user.
+    Creates a Customer objects that holds the entered email.
+    """
     name = data["userFormData"]["name"]
     email = data["userFormData"]["email"]
 
@@ -92,7 +103,10 @@ def create_guest_order(request, data) -> tuple[Customer, Order]:
     return (customer, order)
 
 
-def calculate_price_with_coupon(request, price: Decimal, coupon_code: str, *, use_coupon: bool = False):
+def calculate_price_with_coupon(
+    request, price: Decimal, coupon_code: str, *, use_coupon: bool = False
+):
+    """REDUNDANT METHOD: Calculate price with a coupon applied."""
     if coupon_code == "":
         return (price, "NO_COUPON")
 
@@ -103,7 +117,7 @@ def calculate_price_with_coupon(request, price: Decimal, coupon_code: str, *, us
         end_price: Decimal = price
         coupon: Coupon = Coupon.objects.get(code=coupon_code)
         discount: Discount = coupon.discount
-        
+
         if use_coupon:
             coupon.use_coupon(user=user)
 
@@ -115,6 +129,6 @@ def calculate_price_with_coupon(request, price: Decimal, coupon_code: str, *, us
         end_price = max(end_price - discount_amount, 0)
 
         return (end_price, "OK")
-    
+
     # If the coupon is invalid, return the initial price and the error message
     return (price, status["message"])
