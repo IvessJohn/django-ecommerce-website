@@ -1,5 +1,5 @@
-/access_point.txt
-ecommercewebsite/ecommercewebsite/settings.py
-ecommercewebsite/ecommercewebsite/__pycache__/settings.cpython-310.pyc
 .vscode/
-ecommercewebsite/static/images/diagrams/
+/access_point.txt
+ecommercewebsite/settings.py
+static/images/diagrams/
+*pyc
