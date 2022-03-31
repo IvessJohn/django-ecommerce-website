@@ -150,7 +150,6 @@ def process_order(request) -> JsonResponse:
             zipcode=data["shippingInfo"]["zipcode"],
             country=data["shippingInfo"]["country"],
         )
-        print(data["shippingInfo"]["country"])
 
     # Set the transaction ID
     transaction_id = datetime.datetime.now().timestamp()

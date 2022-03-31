@@ -73,7 +73,7 @@
             <h2>Order Summary</h2>
             <hr>
 
-            <!-- #region Full order -->
+            <!-- #region Order details -->
             <div class="cart-row">
                 <div style="flex: 2;"></div>
                 <div style="flex: 2;"><strong>Item</strong></div>
@@ -115,6 +115,7 @@
 
             <!-- #endregion -->
 
+            <!-- #region Order summary (items amount, applied discount, final price) -->
             <h5>Items: {{order.get_items_amount}}</h5>
             <div id="coupon-info">
                 <hr>
@@ -122,7 +123,13 @@
                 <h6 style="color:green">Coupon discount: -$<span id="coupon-discount">{{order.get_discount_amount}}</span></h6>
                 <hr>
             </div>
+            {% if request.user.is_authenticated %}
             <h3>Final: $<span id="order-final-price">{{order.get_final_price}}</span></h3>
+            {% else %}
+            <h3>Final: $<span id="order-final-price">{{order.get_cart_price}}</span></h3>
+            {% endif %}
+
+            <!-- #endregion -->
         </div>
     </div>
 </div>
@@ -131,8 +138,6 @@
 <!-- Include the PayPal JavaScript SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
 <script>
-    var total = '{{order.get_final_price}}'
-
     // Render the PayPal button(s) into #paypal-button-container
     paypal.Buttons({
 
@@ -159,7 +164,7 @@
             return actions.order.capture().then(function(orderData) {
                 // Successful capture! For demo purposes:
                 submitFormData()
-                alert('Transaction completed by ' + details.payer.name.given_name);
+                alert('Transaction completed');
             });
         }
 
@@ -167,21 +172,19 @@
     }).render('#paypal-button-container');
 </script>
 
-<script type="text/javascript" src="{% static 'js/checkout.js' %}"></script>
 <script type="text/javascript">
     var requiresShipping = '{{requires_shipping}}'
-    var total = '{{order.get_final_price}}'
+    var total = document.getElementById("order-final-price").innerHTML
     var appliedCouponCode = '{{order.applied_coupon.code}}'
 
     // #region Get the forms and the elements that submit data
-
     var form = document.getElementById('form')
     var couponForm = document.getElementById('coupon-form')
     var couponEditButton = document.getElementById('coupon-edit-button')
 
     // #endregion
 
-    //
+    // #region Remove user info and/or shipping info forms if redundant
     if (user != "AnonymousUser") {
         document.getElementById("user-info").innerHTML = ''
     }
@@ -196,12 +199,32 @@
         document.getElementById("payment-info").classList.remove("hidden")
     }
 
-    if (appliedCouponCode != "") {
-        couponInputField = document.getElementById("coupon-field")
-        couponSubmitButton = document.getElementById("coupon-submit-button")
+    // #endregion
 
-        couponInputField.value = appliedCouponCode
-        lockCouponEntering()
+    if (user != "AnonymousUser") {
+        if (!!appliedCouponCode) {
+            couponInputField = document.getElementById("coupon-field")
+            couponSubmitButton = document.getElementById("coupon-submit-button")
+
+            couponInputField.value = appliedCouponCode
+            lockCouponEntering()
+        }
+
+        couponForm.addEventListener('submit', function(e) {
+            //console.log("Coupon submitted...")
+            e.preventDefault()
+            lockCouponEntering()
+            submitCoupon()
+        })
+
+        if (couponEditButton) {
+            couponEditButton.addEventListener('click', function(e) {
+                e.preventDefault()
+                unlockCouponEntering()
+            })
+        }
+    } else {
+        //document.getElementById("order-final-price").innerHTML = '{{order.get_cart_price}}'
     }
 
     //csrftoken = form.getElementsByTagName("input")[0]
@@ -212,16 +235,6 @@
         e.preventDefault()
         document.getElementById("form-button").classList.add("hidden")
         document.getElementById("payment-info").classList.remove("hidden")
-    })
-    couponForm.addEventListener('submit', function(e) {
-        //console.log("Coupon submitted...")
-        e.preventDefault()
-        lockCouponEntering()
-        submitCoupon()
-    })
-    couponEditButton.addEventListener('click', function(e) {
-        e.preventDefault()
-        unlockCouponEntering()
     })
 
     // #region FOR: Updating visual (HTML) elements
@@ -242,7 +255,7 @@
 
     // #region FOR: Submitting data
     function submitFormData() {
-        console.log("Payment button clicked")
+        //console.log("Payment button clicked")
 
         var userFormData = {
             'name': null,
@@ -270,7 +283,6 @@
         }
 
         total = document.getElementById('order-final-price').innerHTML
-        console.log(total)
 
         var url = '/process_order/'
         fetch(url, {
@@ -300,7 +312,7 @@
      * Submit the applied coupon to the back end
      */
     function submitCoupon() {
-        console.log('submitCoupon()')
+        //console.log('submitCoupon()')
 
         var coupon = couponForm.code.value
 
