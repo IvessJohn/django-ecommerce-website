@@ -163,8 +163,9 @@
         onApprove: function(data, actions) {
             return actions.order.capture().then(function(orderData) {
                 // Successful capture! For demo purposes:
-                submitFormData()
+                //alert('Transaction completed by' + details.payer.name.given_name);
                 alert('Transaction completed');
+                submitFormData()
             });
         }
 
@@ -299,7 +300,6 @@
             .then((response) => response.json())
             .then((data) => {
                 console.log("Success:", data)
-                alert("Transaction complete.")
 
                 cart = {}
                 document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
