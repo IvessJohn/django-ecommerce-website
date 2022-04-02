@@ -15,6 +15,7 @@ from . import utils
 from .forms import CreateUserForm
 
 # Create your views here.
+#region Authentication
 def register_view(request) -> HttpResponse:
     form = CreateUserForm()
 
@@ -53,6 +54,15 @@ def login_view(request) -> HttpResponse:
     return render(request, "store/login.html", context)
 
 
+def logout_view(request) -> HttpResponse:
+    """Logout."""
+    logout(request)
+    return redirect("/")
+
+#endregion
+
+
+#region Store pages rendering
 def store(request) -> HttpResponse:
     order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
@@ -93,7 +103,10 @@ def checkout(request) -> HttpResponse:
     }
     return render(request, "store/checkout.html", context)
 
+#endregion
 
+
+#region AJAX
 def update_item(request) -> JsonResponse:
     """Update order item quantity within the database.
     The modified order item is retrieved using the information sent from the front-end."""
@@ -182,7 +195,10 @@ def get_order(request) -> JsonResponse:
     return JsonResponse(json.dumps(order_data))
 
 
-def logout_view(request) -> HttpResponse:
-    """Logout."""
-    logout(request)
-    return redirect("/")
+# endregion
+
+#region Other
+def about_page(request) -> HttpResponse:
+    context = {}
+    return render(request, "store/about.html", context)
+#endregion

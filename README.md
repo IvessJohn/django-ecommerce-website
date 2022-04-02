@@ -1,6 +1,11 @@
 # django-ecommerce-website
 ### An ecommerce applicaton made by [Ivan "John Ivess" Shyika](https://www.youtube.com/c/JohnIvess).
 
+#### Check it out:
+[Ecommerce App Website](https://ivess-ecommerce.herokuapp.com/) (hosted by Heroku)
+
+[Ecommerce App on GitHub](https://github.com/IvessJohn/django-ecommerce-website) (this page)
+
 ## Project description:
 Order products, edit your order, and process it.
 

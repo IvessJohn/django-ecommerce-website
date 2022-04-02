@@ -1,0 +1,43 @@
+{% extends 'store/main.html' %} {% load static %} {% block content %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="box-element">
+            <h2>
+                <center>About</center>
+            </h2>
+            <div>
+                <p>This ecommerce web application was developed by <a href="https://twitter.com/ivess_john/">John Ivess</a> as a part of his project-based learning mode.</p>
+
+                <h3>Ecommerce App links:</h3>
+                <ul>
+                    <li><a href="https://ivess-ecommerce.herokuapp.com/">Ecommerce App website</a> (hosted by Heroku)</li>
+                    <li><a href="https://github.com/IvessJohn/django-ecommerce-website/">Github Repository</a></li>
+                </ul>
+
+                <hr>
+
+                <h4>Tools Used:</h4>
+                <ul>
+                    <li>Django</li>
+                    <li>Python</li>
+                    <li>HTML</li>
+                </ul>
+
+                <h4>Additional Tools and integrations:</h4>
+                <ul>
+                    <li><a href="https://pypi.org/project/django-coupon-management/">django-coupon-management</a></li>
+                    <li><a href="https://pypi.org/project/django-countries/">django-countries</a></li>
+                    <li><a href="https://developer.paypal.com/demo/checkout/#/pattern/style">PayPal Buttons</a></li>
+                    <li>jQuery</li>
+                    <li>AJAX</li>
+                </ul>
+
+                <center><a class="btn btn-sm btn-info" href="{% url 'store' %}">To Store</a></td>
+                </center>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
