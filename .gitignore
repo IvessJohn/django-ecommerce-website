@@ -1,5 +1,6 @@
 .vscode/
 /access_point.txt
-ecommercewebsite/settings.py
 static/images/diagrams/
 *pyc
+ecommercewebsite_old/
+.env
