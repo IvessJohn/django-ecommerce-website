@@ -2,6 +2,7 @@ from decimal import Decimal
 from django.db import models
 from django.contrib.auth.models import User
 
+from django.conf import settings
 from django_countries.fields import CountryField
 from coupon_management.validations import validate_coupon
 from coupon_management.models import Coupon, Discount
@@ -41,7 +42,11 @@ class Product(models.Model):
     def imageURL(self):
         """Return a valid image URL, or an empty string."""
         try:
-            url = self.image.url
+            if settings.ON_HEROKU:
+                url = "https://ivess-ecommerce.herokuapp.com/static" + self.image.url
+            else:
+                url = self.image.url
+            print(url)
         except:
             url = ""
         return url
