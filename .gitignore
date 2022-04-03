@@ -4,3 +4,4 @@ static/images/diagrams/
 *pyc
 ecommercewebsite_old/
 .env
+staticfiles/
