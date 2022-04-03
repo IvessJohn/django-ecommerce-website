@@ -41,7 +41,7 @@ class Product(models.Model):
     def imageURL(self):
         """Return a valid image URL, or an empty string."""
         try:
-            url = self.image.url
+            url = "static" + self.image.url
         except:
             url = ""
         return url
