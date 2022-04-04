@@ -169,7 +169,7 @@
                 //console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                 var transaction = orderData.purchase_units[0].payments.captures[0];
                 //alert('Transaction completed');
-                alert('Transaction ' + transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+                //alert('Transaction ' + transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
 
                 // Replace the above to show a success message within this page, e.g.
                 const element = document.getElementById('paypal-button-container');
@@ -186,7 +186,6 @@
 
 <!-- Custom JS -->
 <script type="text/javascript">
-    console.log(csrftoken)
     var requiresShipping = '{{requires_shipping}}'
     var total = document.getElementById("order-final-price").innerHTML
     var appliedCouponCode = '{{order.applied_coupon.code}}'
@@ -312,7 +311,7 @@
             })
             .then((response) => response.json())
             .then((data) => {
-                console.log("Success:", data)
+                //console.log("Success:", data)
 
                 cart = {}
                 document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
