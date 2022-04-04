@@ -43,7 +43,7 @@ class Product(models.Model):
         """Return a valid image URL, or an empty string."""
         try:
             if settings.ON_HEROKU:
-                url = "https://ivess-ecommerce.herokuapp.com/static" + self.image.url
+                url = "https://ivess-ecommerce.herokuapp.com" + self.image.url
             else:
                 url = self.image.url
             print(url)
