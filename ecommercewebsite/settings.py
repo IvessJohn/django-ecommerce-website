@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 # Define if the app is running on heroku
 ON_HEROKU = 'ON_HEROKU' in os.environ
@@ -140,6 +140,8 @@ STATICFILES_DIRS = [
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 MEDIA_URL = 'images/uploaded/'
+if DEBUG == False:
+    MEDIA_URL = 'static/images/uploaded/'
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images/uploaded')
 

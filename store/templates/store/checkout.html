@@ -56,11 +56,11 @@
 
         <br>
         <div id="payment-info" class="box-element hidden">
-            <small>Paypal Options</small>
+            <small>Paypal Options</small> {% csrf_token %}
             <!-- Set up a container element for the button -->
             <div id="paypal-button-container"></div>
 
-            <!--<button id="make-payment-btn">Make payment</button>-->
+            <small>PLEASE DON'T PAY WITH YOUR REAL CARD. THIS PAYPAL INTEGRATION IS USED FOR DEMO PURPOSES. NONE OF THE BOUGHT ITEMS IS REAL.</small>
         </div>
     </div>
 
@@ -166,16 +166,17 @@
                 submitFormData()
 
                 // For demo purposes:
-                console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                //console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
                 var transaction = orderData.purchase_units[0].payments.captures[0];
                 //alert('Transaction completed');
-                //alert('Transaction ' + transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+                alert('Transaction ' + transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
 
                 // Replace the above to show a success message within this page, e.g.
                 const element = document.getElementById('paypal-button-container');
                 element.innerHTML = '';
                 element.innerHTML = '<p>Thank you for your payment!</p>';
-                // Or go to another URL:  actions.redirect('thank_you.html');
+                // Go to another URL:
+                actions.redirect("{% url 'store' %}");
             });
         }
 
@@ -185,6 +186,7 @@
 
 <!-- Custom JS -->
 <script type="text/javascript">
+    console.log(csrftoken)
     var requiresShipping = '{{requires_shipping}}'
     var total = document.getElementById("order-final-price").innerHTML
     var appliedCouponCode = '{{order.applied_coupon.code}}'
