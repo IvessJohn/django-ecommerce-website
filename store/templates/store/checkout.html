@@ -120,12 +120,15 @@
             <div id="coupon-info">
                 <hr>
                 <h6>Total: ${{order.get_cart_price}}</h6>
+
+                {% if request.user.is_authenticated %}
                 <h6 style="color:green">Coupon discount: -$<span id="coupon-discount">{{order.get_discount_amount}}</span></h6>
+                {% endif %}
                 <hr>
             </div>
-            {% if request.user.is_authenticated %}
+            {% if request.user.is_authenticated %} {# Final price may have an applied coupon #}
             <h3>Final: $<span id="order-final-price">{{order.get_final_price}}</span></h3>
-            {% else %}
+            {% else %} {# Final price equals to cart price because no coupon can be applied for unauthenticated users #}
             <h3>Final: $<span id="order-final-price">{{order.get_cart_price}}</span></h3>
             {% endif %}
 
