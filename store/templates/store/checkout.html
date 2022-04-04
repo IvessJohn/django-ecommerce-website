@@ -56,11 +56,11 @@
 
         <br>
         <div id="payment-info" class="box-element hidden">
-            <small>Paypal Options</small>
+            <small>Paypal Options</small> {% csrf_token %}
             <!-- Set up a container element for the button -->
             <div id="paypal-button-container"></div>
 
-            <!--<button id="make-payment-btn">Make payment</button>-->
+            <small>PLEASE DON'T PAY WITH YOUR REAL CARD. THIS PAYPAL INTEGRATION IS USED FOR DEMO PURPOSES. NONE OF THE BOUGHT ITEMS IS REAL.</small>
         </div>
     </div>
 
@@ -135,7 +135,7 @@
 </div>
 
 
-<!-- Include the PayPal JavaScript SDK -->
+<!-- PayPal Buttons JS SDK -->
 <script src="https://www.paypal.com/sdk/js?client-id=AUaiSy_NrNeExAERsapEzKPkgfpyr6QTa8w6VoeNEch9ZVfR_P83R-GtdC0nzcUAUQ8lOv1gQbeeWtOL&currency=USD&disable-funding=credit"></script>
 <script>
     // Render the PayPal button(s) into #paypal-button-container
@@ -162,10 +162,21 @@
         // Finalize the transaction
         onApprove: function(data, actions) {
             return actions.order.capture().then(function(orderData) {
-                // Successful capture! For demo purposes:
-                //alert('Transaction completed by' + details.payer.name.given_name);
-                alert('Transaction completed');
+                // Successful transaction!
                 submitFormData()
+
+                // For demo purposes:
+                //console.log('Capture result', orderData, JSON.stringify(orderData, null, 2));
+                var transaction = orderData.purchase_units[0].payments.captures[0];
+                //alert('Transaction completed');
+                //alert('Transaction ' + transaction.status + ': ' + transaction.id + '\n\nSee console for all available details');
+
+                // Replace the above to show a success message within this page, e.g.
+                const element = document.getElementById('paypal-button-container');
+                element.innerHTML = '';
+                element.innerHTML = '<p>Thank you for your payment!</p>';
+                // Go to another URL:
+                actions.redirect("{% url 'store' %}");
             });
         }
 
@@ -173,6 +184,7 @@
     }).render('#paypal-button-container');
 </script>
 
+<!-- Custom JS -->
 <script type="text/javascript">
     var requiresShipping = '{{requires_shipping}}'
     var total = document.getElementById("order-final-price").innerHTML
@@ -299,7 +311,7 @@
             })
             .then((response) => response.json())
             .then((data) => {
-                console.log("Success:", data)
+                //console.log("Success:", data)
 
                 cart = {}
                 document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
