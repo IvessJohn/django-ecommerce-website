@@ -18,8 +18,11 @@ class Customer(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     name: models.CharField = models.CharField(max_length=200, null=True, blank=False)
     email: models.CharField = models.CharField(max_length=200, blank=True)
+    device_id: models.CharField = models.CharField(max_length=32, blank=True)
 
     def __str__(self) -> str:
+        if self.name == "" and self.device_id != "":
+            return self.device_id
         return self.name
 
 
