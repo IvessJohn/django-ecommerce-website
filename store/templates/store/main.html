@@ -43,6 +43,7 @@
         }
         const csrftoken = getToken('csrftoken');
 
+        // Get a cookie by its name
         function getCookie(name) {
             // Split cookie string and get all individual name=value pairs in an array
             var cookieArr = document.cookie.split(";");
@@ -62,14 +63,22 @@
             // Return null if not found
             return null;
         }
-        var cart = JSON.parse(getCookie('cart'))
 
-        if (cart == undefined) {
-            cart = {}
-            console.log('Cart Created!', cart)
-            document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
+        // Generate a random 32-characters-long key
+        function uuidv4() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                var r = Math.random() * 16 | 0,
+                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
         }
-        console.log('Cart:', cart)
+
+        let deviceID = JSON.parse(getCookie('deviceID'))
+
+        if (deviceID == null || deviceID == undefined) {
+            deviceID = uuidv4()
+            document.cookie = 'deviceID=' + JSON.stringify(deviceID) + ";domain=;path=/"
+        }
     </script>
 
 </head>

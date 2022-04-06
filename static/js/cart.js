@@ -1,7 +1,7 @@
 var pagePath = window.location.pathname;
 
 var cartItemsQuantityElement = document.getElementById(`cart-total`)
-var itemQuantity = getItemAmountFromCookies()
+var itemQuantity = 0
 
 // Assign item quantity update functionality to every `update-cart` button
 var updateBtns = document.getElementsByClassName('update-cart')
@@ -12,7 +12,7 @@ for (i = 0; i < updateBtns.length; i++) {
 
         // console.log("USER:", user);
 
-        await updateProductQuantity(productId, action)
+        await updateItemQuantity(productId, action)
 
         updateNavbarItemsCounter(itemQuantity)
         if (pagePath == "/cart/") {
@@ -28,14 +28,8 @@ for (i = 0; i < updateBtns.length; i++) {
  * @param {String} action       The action performed on this ordered item's quantity.
  *                              Can have these values: "add", "remove_one" 
  */
-async function updateProductQuantity(productId, action) {
-    if (user == "AnonymousUser") {
-        // If the user is unathenticated, edit cookies
-        addCartCookieItem(productId, action)
-    } else {
-        // If the user is athenticated, edit the order via back end
-        await updateUserOrder(productId, action)
-    }
+async function updateItemQuantity(productId, action) {
+    await fetchItemQuantityUpdate(productId, action)
 }
 
 /**
@@ -45,7 +39,7 @@ async function updateProductQuantity(productId, action) {
  * @param {String} action       The action performed on this ordered item's quantity.
  *                              Can have these values: "add", "remove_one" 
  */
-async function updateUserOrder(productId, action) {
+async function fetchItemQuantityUpdate(productId, action) {
     //console.log("User is authenticated - sending data...")
 
     var url = "/update_item/"
@@ -75,44 +69,11 @@ async function updateUserOrder(productId, action) {
         })
 }
 
-/**
- * Update product quantity inside of the `cart` cookie.
- * @param {Number} productId    The ID of the product which quanitity is changed
- * @param {String} action       The action performed on this ordered item's quantity.
- *                              Can have these values: "add", "remove_one" 
- */
-function addCartCookieItem(productId, action) {
-    // Update the quantity code-wise
-    if (action == 'add') {
-        if (cart[productId] == undefined) {
-            cart[productId] = { 'quantity': 1 }
-        } else {
-            cart[productId]['quantity'] += 1
-        }
-        itemQuantity += 1
-    } else if (action == 'remove_one') {
-        if (cart[productId]) {
-            cart[productId]['quantity'] -= 1
-        }
-        itemQuantity -= 1
-    }
-
-    // Remove the item cookie if its quantity is 0 or less
-    //if (cart[productId]['quantity'] <= 0) {
-    //    console.log('Remove item #', productId)
-    //    delete cart['productId']
-    //}
-
-    document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
-
-    // Update quantity labels
-    if (pagePath == "/cart/") {
-        updateCartProduct(productId, cart[productId]['quantity'])
-    }
-}
 
 /**
- * Update the ordered item's HTML representation on the `cart` page
+ * Update the ordered item's HTML representation on the `cart` page. \
+ * INTENDED TO WORK ONLY ON THE `cart` PAGE.
+ * 
  * @param {Number} productId        The ID of the product which quanitity is changed
  * @param {Number} productQuantity  The new quantity of the ordered item
  */
@@ -126,7 +87,7 @@ function updateCartProduct(productId, productQuantity) {
 }
 
 /**
- * Update the total amount of ordered items
+ * Update the total amount of ordered items.
  * @param {Number} new_total 
  */
 function updateNavbarItemsCounter(new_total) {
@@ -134,27 +95,15 @@ function updateNavbarItemsCounter(new_total) {
 }
 
 /**
- * Retrieve the total amount of ordered items 
- * @returns {Number}        The amount of ordered items
- */
-function getItemAmountFromCookies() {
-    var amount = 0
-    for (const item_id in cart) {
-        amount += parseInt(cart[item_id]['quantity'])
-    }
-    return amount
-}
-
-/**
- * Update cart totals: total item count, order price
+ * Update cart totals: total item count, order price.
  */
 function updateCartTotals() {
     var orderPrice = 0.0
     itemQuantity = 0
 
     /*
-    Go over every item in the cart and add its quantity and price to the total
-    amount variables
+    Iterate over every item in the cart and add its quantity and price to the
+    total amount variables
     */
     var cartRows = document.getElementsByClassName("cart-row actual")
     for (let cartRow of cartRows) {

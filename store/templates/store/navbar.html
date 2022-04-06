@@ -22,9 +22,14 @@
         <!-- Right-corner interface -->
         <div class="form-inline my-2 my-lg-0">
             {% if request.user.is_authenticated %}
+            <!-- #region Authenticated bar -->
             <span class="hello-msg">Hello, {{request.user}}</span>
-            <a href="{% url 'logout' %}" class="btn btn-warning">Logout</a> {% else %}
+            <a href="{% url 'logout' %}" class="btn btn-warning">Logout</a>
+            <!-- #endregion -->
+            {% else %}
+            <!-- #region Unuthenticated bar -->
             <a href="{% url 'login' %}" class="btn btn-warning">Login</a> {% endif %}
+            <!-- #endregion -->
 
 
             <!-- Cart icon and ordered items counter -->

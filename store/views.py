@@ -3,7 +3,7 @@ import datetime
 from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -15,8 +15,8 @@ from . import utils
 from .forms import CreateUserForm
 
 # Create your views here.
-#region Authentication
-def register_view(request) -> HttpResponse:
+# region Authentication
+def register_view(request: HttpRequest) -> HttpResponse:
     form = CreateUserForm()
 
     if request.method == "POST":
@@ -35,7 +35,7 @@ def register_view(request) -> HttpResponse:
     return render(request, "store/register.html", context)
 
 
-def login_view(request) -> HttpResponse:
+def login_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         _username = request.POST.get("username")
         _password = request.POST.get("password")
@@ -54,16 +54,17 @@ def login_view(request) -> HttpResponse:
     return render(request, "store/login.html", context)
 
 
-def logout_view(request) -> HttpResponse:
+def logout_view(request: HttpRequest) -> HttpResponse:
     """Logout."""
     logout(request)
     return redirect("/")
 
-#endregion
+
+# endregion
 
 
-#region Store pages rendering
-def store(request) -> HttpResponse:
+# region Store pages rendering
+def store(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
 
@@ -73,7 +74,7 @@ def store(request) -> HttpResponse:
     return render(request, "store/store.html", context)
 
 
-def cart(request) -> HttpResponse:
+def cart(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
@@ -87,7 +88,7 @@ def cart(request) -> HttpResponse:
     return render(request, "store/cart.html", context)
 
 
-def checkout(request) -> HttpResponse:
+def checkout(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
@@ -103,20 +104,23 @@ def checkout(request) -> HttpResponse:
     }
     return render(request, "store/checkout.html", context)
 
-#endregion
+
+# endregion
 
 
-#region AJAX
+# region AJAX
 def update_item(request) -> JsonResponse:
     """Update order item quantity within the database.
     The modified order item is retrieved using the information sent from the front-end."""
     data = json.loads(request.body)
     product_id: int = data["productId"]
     action: str = data["action"]
+    print(data)
+
     # print(f"deserialized json data: {product_id} {action}")
 
-    customer = request.user.customer
-    product = Product.objects.get(id=product_id)
+    customer: Customer = utils.get_customer(request)
+    product: Product = Product.objects.get(id=product_id)
 
     order, created = Order.objects.get_or_create(customer=customer, complete=False)
     order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
@@ -145,12 +149,13 @@ def process_order(request) -> JsonResponse:
     """
     data = json.loads(request.body)
 
+    customer: Customer = utils.get_customer(request)
+
     # Create/Get the current order
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-    else:
-        customer, order = utils.create_guest_order(request, data)
+    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+
+    # Save customer info (the entered)
+    utils.append_guest_customer_info(customer, data)
 
     # Save shipping information if the order requires shipping
     if order.requires_shipping:
@@ -172,9 +177,11 @@ def process_order(request) -> JsonResponse:
     total = Decimal(data["userFormData"]["total"])
     if total == order.get_final_price:
         order.complete = True
+    
     order.save()
 
-    print(f"Payment data: {request.body}")
+    # print(f"Order: {order}")
+    # print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
 
 
@@ -183,7 +190,7 @@ def apply_coupon(request) -> JsonResponse:
     coupon_code = data["couponCode"]
 
     if request.user.is_authenticated:
-        customer = request.user.customer
+        customer: Customer = utils.get_customer(request)
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         order.apply_coupon(coupon_code)
 
@@ -197,8 +204,10 @@ def get_order(request) -> JsonResponse:
 
 # endregion
 
-#region Other
-def about_page(request) -> HttpResponse:
+# region Other
+def about_page(request: HttpRequest) -> HttpResponse:
     context = {}
     return render(request, "store/about.html", context)
-#endregion
+
+
+# endregion
