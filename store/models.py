@@ -16,13 +16,13 @@ class Customer(models.Model):
     """
 
     user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
-    name: models.CharField = models.CharField(max_length=200, null=True, blank=False)
+    name: models.CharField = models.CharField(max_length=200, null=True, blank=True)
     email: models.CharField = models.CharField(max_length=200, blank=True)
     device_id: models.CharField = models.CharField(max_length=32, blank=True)
 
     def __str__(self) -> str:
-        if self.name == "" and self.device_id != "":
-            return self.device_id
+        if not self.name and self.device_id != "":
+            return str(self.device_id)
         return self.name
 
 
@@ -73,7 +73,7 @@ class Order(models.Model):
     )
 
     def __str__(self) -> str:
-        return f"Order({self.id})-{self.customer.name}"
+        return f"Order({self.id})-{str(self.customer)}"
 
     @property
     def get_cart_price(self):

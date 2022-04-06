@@ -29,18 +29,21 @@ for (i = 0; i < updateBtns.length; i++) {
  *                              Can have these values: "add", "remove_one" 
  */
 async function updateProductQuantity(productId, action) {
-    if (user == "AnonymousUser") {
-        // If the user is unathenticated, edit cookies
-        addCartCookieItem(productId, action)
-    } else {
-        // If the user is athenticated, edit the order via back end
-        await updateUserOrder(productId, action)
-    }
+    // if (user == "AnonymousUser") {
+    //     // If the user is unathenticated, edit cookies
+    //     addCartCookieItem(productId, action)
+    // } else {
+    //     // If the user is athenticated, edit the order via back end
+    //     await updateUserOrder(productId, action)
+    // }
+    await updateUserOrder(productId, action)
 }
 
 /**
  * Fetch a request to edit the quantity of an item with the `productId` ID.
  * 
+ * @param {String} deviceId     The ID of the customer's device. Used for
+ *                              unathenticated users
  * @param {Number} productId    The ID of the product which quanitity is changed
  * @param {String} action       The action performed on this ordered item's quantity.
  *                              Can have these values: "add", "remove_one" 
@@ -138,11 +141,12 @@ function updateNavbarItemsCounter(new_total) {
  * @returns {Number}        The amount of ordered items
  */
 function getItemAmountFromCookies() {
-    var amount = 0
-    for (const item_id in cart) {
-        amount += parseInt(cart[item_id]['quantity'])
-    }
-    return amount
+    // var amount = 0
+    // for (const item_id in cart) {
+    //     amount += parseInt(cart[item_id]['quantity'])
+    // }
+    // return amount
+    return 0
 }
 
 /**

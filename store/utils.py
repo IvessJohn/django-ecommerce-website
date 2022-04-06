@@ -11,23 +11,42 @@ from coupon_management.models import Coupon, Discount
 from .models import *
 
 
+def get_device_id_from_request(request) -> str:
+    """Return the value of `deviceID` cookie."""
+    device_id: str = "my_device"
+    if "deviceID" in request.COOKIES:
+        device_id = request.COOKIES.get("deviceID")
+
+    return device_id
+
+
+def get_customer(request) -> Customer:
+    """Get the current customer from the HTTP request (if authenticated) or
+    using the value of `deviceID` cookie.
+    Creates a new Customer if `deviceID` is new."""
+    # If user is authenticated, get it straight from the request
+    if request.user.is_authenticated:
+        customer: Customer = request.user.customer
+    else:
+        # If not, get it using device_id
+        device_id: str = get_device_id_from_request(request)
+
+        customer, created = Customer.objects.get_or_create(device_id=device_id)
+        # print(f"customer's device id: {device_id}")
+
+    return customer
+
+
 def get_order_data(request) -> dict:
     """Get the current order data as a dictionary.
     Data is retrieved either from the database (if the user is authenticated),
     or from browser cookies (`cart` cookie created for unauthenticated users).
     """
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-        ordered_items = order.orderitem_set.all()
-        items_amount = order.get_items_amount
-        requires_shipping = order.requires_shipping
-    else:
-        cart_data = cookie_cart(request)
-        ordered_items = cart_data["ordered_items"]
-        order = cart_data["order"]
-        items_amount = cart_data["items_amount"]
-        requires_shipping = cart_data["requires_shipping"]
+    customer: Customer = get_customer(request)
+    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+    ordered_items = order.orderitem_set.all()
+    items_amount = order.get_items_amount
+    requires_shipping = order.requires_shipping
 
     return {
         "order": order,
@@ -75,6 +94,16 @@ def cookie_cart(request) -> dict:
         "items_amount": items_amount,
         "requires_shipping": order["requires_shipping"],
     }
+
+
+def append_guest_customer_info(customer: Customer, data):
+    """Save guest customer's name and email from `data`."""
+    name = data["userFormData"]["name"]
+    email = data["userFormData"]["email"]
+
+    customer.email = email
+    customer.name = name
+    customer.save()
 
 
 def create_guest_order(request, data) -> tuple[Customer, Order]:

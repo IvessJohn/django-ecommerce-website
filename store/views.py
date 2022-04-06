@@ -15,7 +15,7 @@ from . import utils
 from .forms import CreateUserForm
 
 # Create your views here.
-#region Authentication
+# region Authentication
 def register_view(request) -> HttpResponse:
     form = CreateUserForm()
 
@@ -59,10 +59,11 @@ def logout_view(request) -> HttpResponse:
     logout(request)
     return redirect("/")
 
-#endregion
+
+# endregion
 
 
-#region Store pages rendering
+# region Store pages rendering
 def store(request) -> HttpResponse:
     order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
@@ -103,20 +104,23 @@ def checkout(request) -> HttpResponse:
     }
     return render(request, "store/checkout.html", context)
 
-#endregion
+
+# endregion
 
 
-#region AJAX
+# region AJAX
 def update_item(request) -> JsonResponse:
     """Update order item quantity within the database.
     The modified order item is retrieved using the information sent from the front-end."""
     data = json.loads(request.body)
     product_id: int = data["productId"]
     action: str = data["action"]
+    print(data)
+
     # print(f"deserialized json data: {product_id} {action}")
 
-    customer = request.user.customer
-    product = Product.objects.get(id=product_id)
+    customer: Customer = utils.get_customer(request)
+    product: Product = Product.objects.get(id=product_id)
 
     order, created = Order.objects.get_or_create(customer=customer, complete=False)
     order_item, created = OrderItem.objects.get_or_create(order=order, product=product)
@@ -145,12 +149,15 @@ def process_order(request) -> JsonResponse:
     """
     data = json.loads(request.body)
 
+    customer: Customer = utils.get_customer(request)
+
     # Create/Get the current order
-    if request.user.is_authenticated:
-        customer = request.user.customer
-        order, created = Order.objects.get_or_create(customer=customer, complete=False)
-    else:
-        customer, order = utils.create_guest_order(request, data)
+    order, created = Order.objects.get_or_create(customer=customer, complete=False)
+
+    # Save customer info (the entered)
+    utils.append_guest_customer_info(customer, data)
+
+    # NEXT: Write utils.py method for completing guest user info (setting him a name and an email)
 
     # Save shipping information if the order requires shipping
     if order.requires_shipping:
@@ -170,9 +177,13 @@ def process_order(request) -> JsonResponse:
 
     # Check price
     total = Decimal(data["userFormData"]["total"])
+    print(repr(total),repr(order.get_final_price),total == order.get_final_price)
+    print(total == order.get_final_price)
     if total == order.get_final_price:
         order.complete = True
+    
     order.save()
+    print(order)
 
     print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
@@ -183,7 +194,7 @@ def apply_coupon(request) -> JsonResponse:
     coupon_code = data["couponCode"]
 
     if request.user.is_authenticated:
-        customer = request.user.customer
+        customer: Customer = utils.get_customer(request)
         order, created = Order.objects.get_or_create(customer=customer, complete=False)
         order.apply_coupon(coupon_code)
 
@@ -197,8 +208,10 @@ def get_order(request) -> JsonResponse:
 
 # endregion
 
-#region Other
+# region Other
 def about_page(request) -> HttpResponse:
     context = {}
     return render(request, "store/about.html", context)
-#endregion
+
+
+# endregion
