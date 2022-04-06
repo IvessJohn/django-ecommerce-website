@@ -3,7 +3,7 @@ import datetime
 from decimal import Decimal
 from django.shortcuts import render, redirect
 from django.contrib.auth import logout
-from django.http import JsonResponse, HttpResponse
+from django.http import HttpRequest, JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth import authenticate, login
@@ -16,7 +16,7 @@ from .forms import CreateUserForm
 
 # Create your views here.
 # region Authentication
-def register_view(request) -> HttpResponse:
+def register_view(request: HttpRequest) -> HttpResponse:
     form = CreateUserForm()
 
     if request.method == "POST":
@@ -35,7 +35,7 @@ def register_view(request) -> HttpResponse:
     return render(request, "store/register.html", context)
 
 
-def login_view(request) -> HttpResponse:
+def login_view(request: HttpRequest) -> HttpResponse:
     if request.method == "POST":
         _username = request.POST.get("username")
         _password = request.POST.get("password")
@@ -54,7 +54,7 @@ def login_view(request) -> HttpResponse:
     return render(request, "store/login.html", context)
 
 
-def logout_view(request) -> HttpResponse:
+def logout_view(request: HttpRequest) -> HttpResponse:
     """Logout."""
     logout(request)
     return redirect("/")
@@ -64,7 +64,7 @@ def logout_view(request) -> HttpResponse:
 
 
 # region Store pages rendering
-def store(request) -> HttpResponse:
+def store(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     items_amount = order_data["items_amount"]
 
@@ -74,7 +74,7 @@ def store(request) -> HttpResponse:
     return render(request, "store/store.html", context)
 
 
-def cart(request) -> HttpResponse:
+def cart(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
@@ -88,7 +88,7 @@ def cart(request) -> HttpResponse:
     return render(request, "store/cart.html", context)
 
 
-def checkout(request) -> HttpResponse:
+def checkout(request: HttpRequest) -> HttpResponse:
     order_data = utils.get_order_data(request)
     order = order_data["order"]
     ordered_items = order_data["ordered_items"]
@@ -157,8 +157,6 @@ def process_order(request) -> JsonResponse:
     # Save customer info (the entered)
     utils.append_guest_customer_info(customer, data)
 
-    # NEXT: Write utils.py method for completing guest user info (setting him a name and an email)
-
     # Save shipping information if the order requires shipping
     if order.requires_shipping:
         ShippingInformation.objects.create(
@@ -177,15 +175,13 @@ def process_order(request) -> JsonResponse:
 
     # Check price
     total = Decimal(data["userFormData"]["total"])
-    print(repr(total),repr(order.get_final_price),total == order.get_final_price)
-    print(total == order.get_final_price)
     if total == order.get_final_price:
         order.complete = True
     
     order.save()
-    print(order)
 
-    print(f"Payment data: {request.body}")
+    # print(f"Order: {order}")
+    # print(f"Payment data: {request.body}")
     return JsonResponse("Payment submitted...", safe=False)
 
 
@@ -209,7 +205,7 @@ def get_order(request) -> JsonResponse:
 # endregion
 
 # region Other
-def about_page(request) -> HttpResponse:
+def about_page(request: HttpRequest) -> HttpResponse:
     context = {}
     return render(request, "store/about.html", context)
 
