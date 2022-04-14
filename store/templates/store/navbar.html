@@ -18,23 +18,27 @@
             <li class="nav-item">
                 <a class="nav-link" href="{% url 'about_page' %}">About</a>
             </li>
+            <!-- Github (transparent link) -->
+            <li class="nav-item">
+                <a class="nav-link" href="https://github.com/IvessJohn/django-ecommerce-website/">Source on GitHub</a>
+            </li>
         </ul>
         <!-- Right-corner interface -->
-        <div class="form-inline my-2 my-lg-0">
+        <div class=" form-inline my-2 my-lg-0 ">
             {% if request.user.is_authenticated %}
             <!-- #region Authenticated bar -->
-            <span class="hello-msg">Hello, {{request.user}}</span>
-            <a href="{% url 'logout' %}" class="btn btn-warning">Logout</a>
+            <span class="hello-msg ">Hello, {{request.user}}</span>
+            <a href="{% url 'logout' %} " class="btn btn-warning ">Logout</a>
             <!-- #endregion -->
             {% else %}
             <!-- #region Unuthenticated bar -->
-            <a href="{% url 'login' %}" class="btn btn-warning">Login</a> {% endif %}
+            <a href="{% url 'login' %} " class="btn btn-warning ">Login</a> {% endif %}
             <!-- #endregion -->
 
 
             <!-- Cart icon and ordered items counter -->
-            <a href="{% url 'cart' %}">
-                <i class="fa-solid fa-cart-shopping" style="color: #fff"></i>
+            <a href="{% url 'cart' %} ">
+                <i class="fa-solid fa-cart-shopping " style="color: #fff "></i>
             </a>
             <p id="cart-total">{{items_amount}}</p>
 
